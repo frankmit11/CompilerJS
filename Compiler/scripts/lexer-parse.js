@@ -2,6 +2,30 @@
 //Author: Frank Mitarotonda
 //Date: February 16 2016
     
+    var tokenstream = []; //This array will store all my created tokens.
+
+    //Constructor that creates token by getting the tokens value and kind.
+           function token(value,kind,line)
+          {
+                this.val=value;
+                this.kind=kind;
+                this.line=line;
+
+          }
+//Declares all Regexs used in our grammer so that they can be matched in the list of if statements im sure is bad coding practice.
+        var openq = /\"/; 
+        var keywords = /while|if|print|int|string|boolean|true|false/;
+        var chars = /[a-z]/;
+        var digits = /[0-9]/;
+        var equality = /==|!=/;
+        var addition = /\+/;
+        var assign = /=/;
+        var openbrace = /{/;
+        var closebrace = /}/;
+        var openparen = /\(/;
+        var closeparen = /\)/;
+        var endblock = /\$/;
+    
     function lex()
     {
         // Grabs the "raw" source code.
@@ -23,40 +47,15 @@
         
         
 
-        
-
-        //Constructor that creates token by getting the tokens value and kind.
-           function token(value,kind,line)
-          {
-                this.val=value;
-                this.kind=kind;
-                this.line=line;
-
-          }
-        
-
-        
+    
         var instring;  //Declares Boolean used to determine if strings are used.
         var quote = 1; //Used to count number of quotes to differentiate between an opened and closed quote. 
         var linenum = 0; //Sets linenum to 0 because all computer programmers count from 0.
         
-        //Declares all Regexs used in our grammer so that they can be matched in the list of if statements im sure is bad coding practice.
-        var openq = /\"/; 
-        var keywords = /while|if|print|int|string|boolean|true|false/;
-        var chars = /[a-z]/;
-        var digits = /[0-9]/;
-        var equality = /==|!=/;
-        var addition = /\+/;
-        var assign = /=/;
-        var openbrace = /{/;
-        var closebrace = /}/;
-        var openparen = /\(/;
-        var closeparen = /\)/;
-        var endblock = /\$/;
+   
 
         var space = /\s/; //Declared to account for the space token in strings.
         var line = /\n/; //Used to count line number.
-        var tokenstream = []; //This array will store all my created tokens. 
         console.log(code);
         var lexem = code.length; //Gets the length of my code array so I can loop through it in my next line.
         
@@ -162,6 +161,8 @@
          else if (tokenval.match(endblock)){
          //Recognizes endblock however not a token so dont tokenize.
          putMessage("End Block reached [" + tokenval + "] on Line " + linenum);
+         endtoken = new token(tokenval, "EndBlock", linenum);
+         tokenstream.push(endtoken.val,endtoken.kind,endtoken.line);
          }
          else
          {
@@ -171,6 +172,198 @@
         putMessage("Token Stream [" + tokenstream + "]"); //Ouputs token stream so that I can visualize things this might change depedning if you like it or not.
 
           
+    }
+
+    
+
+
+
+
+  var tokenindex  = 0;
+  var lineindex  = 0;
+
+    function parse() {
+
+        // Grab the next token.
+        currentToken = getNextToken();
+        putMessage("Parsing [" + currentToken + "]");
+        // A valid parse derives the G(oal) production, so begin there.
+        parseG();
+        // Report the results.
+        putMessage("Parsing found " + errorCount + " error(s).");        
+    }
+    
+    function parseG() {
+        // A G(oal) production can only be an E(xpression), so parse the E production.
+        parseB();
+        currentToken = getNextToken();
+        putMessage("Expecting a $");
+        if (currentToken.match(endblock)) {
+            // We're not done, we we expect to have an op.
+            putMessage("EOF reached");
+        } else {
+            // There is nothing else in the token stream, 
+            // and that's cool since E --> digit is valid.
+            putMessage("Parse Error Expecting $ got " + currentToken);
+        }
+    }
+
+    function parseB() {
+        
+        putMessage("Expecting an OpenBrace");
+        if (currentToken.match(openbrace)) {
+            // We're not done, we we expect to have an op.
+            putMessage("Got OpenBrace");
+            currentToken = getNextToken();
+        } else {
+            // There is nothing else in the token stream, 
+            // and that's cool since E --> digit is valid.
+            putMessage("Parse Error Expecting {");
+            return;
+        }
+        parseSL();
+        if (currentToken.match(closebrace)) {
+            putMessage("Expecting a CloseBrace");
+            putMessage("Got CloseBrace");
+            currentToken = getNextToken();
+            parseSL();
+        } 
+        else if (currentToken.match(endblock)){
+         //Do nothing
+         }
+        else {
+            // There is nothing else in the token stream, 
+            // and that's cool since E --> digit is valid.
+            putMessage("Parse Error Expecting }");
+        }
+
+
+        
+        
+    }
+
+function parseSL() {
+putMessage("Expecting a Statement");
+if (currentToken.match(keywords)){
+    putMessage("Got Statement");
+    parsePS();
+    parseSL();
+    
+ }
+else if(currentToken.match(chars)){
+  putMessage("Got Statement");
+    }
+else if(currentToken.match(openbrace)){
+  putMessage("Got Statement");
+  currentToken = getNextToken();
+  parseSL();
+    }
+ else if(currentToken.match(closebrace)){
+  putMessage("Got Statement");
+  currentToken = getNextToken();
+    }
+
+
+}
+
+function parsePS() {
+if (currentToken.match(/print/)){
+    putMessage("Expecting Keyword");
+    putMessage("Got keyword print");
+    putMessage("Expecting an OpenParen")
+    currentToken = getNextToken();
+    parsePS();
+    }
+else if(currentToken.match(openparen)){
+    putMessage("Got OpenParen");
+    currentToken = getNextToken();
+    parseExP();
+    putMessage("Expecting a CloseParen");
+    if(currentToken.match(closeparen))
+    putMessage("Got CloseParen");
+    currentToken = getNextToken();
+  }
+}
+
+function parseExP(){
+putMessage("Expecting an Expression");
+if (currentToken.match(digits)){
+    putMessage("Expecting a Digit");
+    putMessage("Got a Digit");
+    currentToken = getNextToken();
+    parseIntExP();
+    }
+else if(currentToken.match(openq)){
+putMessage("Expecting an OpenQuote")
+currentToken = getNextToken();
+parseCharL();
+putMessage("Expecting a CloseQuote")
+if(currentToken.match(openq)){
+  putMessage("Got a CloseQuote");
+  currentToken = getNextToken();
+}
+}
+else if(currentToken.match(openparen)){
+    putMessage("Got OpenParen");
+    currentToken = getNextToken();
+    parseExP();
+    parseBoolop();
+    parseExP();
+
+if(currentToken.match(closeparen)){
+  putMessage("Expecting a CloseParen")
+  putMessage("Got a CloseParen");
+  currentToken = getNextToken();
+}
+
+}
+else if(currentToken.match(chars)){
+  putMessage("Expecting an Identifer")
+  putMessage("Got an Identifer");
+  currentToken = getNextToken();
+
+}
+else{
+currentline = getlineNum();
+putMessage("Critical Error No Expression on line " + currentline);
+//parseBooVal();
+}
+
+}
+
+function parseIntExP() {
+if (currentToken.match(addition)){
+    putMessage("Expecting Operation");
+    putMessage("Got Operation");
+    currentToken = getNextToken();
+    parseExP();
+   }
+
+}
+
+
+
+    function getNextToken() {
+        if (tokenindex < tokenstream.length)
+        {
+            // If we're not at EOF, then return the next token in the stream and advance the index.
+            thisToken = tokenstream[tokenindex];
+            putMessage("Current token:" + thisToken);
+            tokenindex = tokenindex + 3;
+        }
+        return thisToken;
+        
+    }
+    
+    function getlineNum() {
+        if (lineindex < tokenstream.length)
+        {
+            // If we're not at EOF, then return the next token in the stream and advance the index.
+            lineindex = tokenindex - 1;
+            linenum = tokenstream[lineindex];
+        }
+        return linenum;
+        
     }
 
 
