@@ -13,9 +13,12 @@
 
           }
 //Declares all Regexs used in our grammer so that they can be matched in the list of if statements im sure is bad coding practice.
+        var lexerrors = 0;
         var openq = /\"/; 
+        var fail = /fail/; 
         var keywords = /while|if|print|int|string|boolean|true|false/;
-        var chars = /[a-z]/;
+        var boolval = /true|false/;
+        var chars = /^[a-z]$/;
         var digits = /[0-9]/;
         var equality = /==|!=/;
         var addition = /\+/;
@@ -25,6 +28,8 @@
         var openparen = /\(/;
         var closeparen = /\)/;
         var endblock = /\$/;
+        var space = /\s/; //Declared to account for the space token in strings.
+
     
     function lex()
     {
@@ -54,7 +59,6 @@
         
    
 
-        var space = /\s/; //Declared to account for the space token in strings.
         var line = /\n/; //Used to count line number.
         console.log(code);
         var lexem = code.length; //Gets the length of my code array so I can loop through it in my next line.
@@ -166,7 +170,8 @@
          }
          else
          {
-         putMessage("Lex Error [" + tokenval + "] is Not a Valid Token on Line " + linenum); //Throws error with line number if none of the tokens are matched. 
+         putMessage("Lex Error [" + tokenval + "] is Not a Valid Token on Line " + linenum); //Throws error with line number if none of the tokens are matched.
+         lexerrors++; 
          }
        }
         putMessage("Token Stream [" + tokenstream + "]"); //Ouputs token stream so that I can visualize things this might change depedning if you like it or not.
@@ -174,29 +179,81 @@
           
     }
 
-    
 
 
-
-
+  var value = 0
+  var obracecounter = 0;
+  var cbracecounter = 0;
   var tokenindex  = 0;
   var lineindex  = 0;
 
     function parse() {
-
+        var lasttoke = lastindex();
+        var lastthing = tokenstream[lasttoke];
+        if (lexerrors == 0 && lastthing == "}"){ 
+        putMessage("You Forgot a $ to end your Program!");
+        tokenstream.push("$","EndBlock","PreventBreak");
         // Grab the next token.
         currentToken = getNextToken();
+        if(currentToken.match(openbrace)){
+           
+        
         putMessage("Parsing [" + currentToken + "]");
         // A valid parse derives the G(oal) production, so begin there.
         parseG();
+        if (currentToken.match(fail)){
         // Report the results.
-        putMessage("Parsing found " + errorCount + " error(s).");        
+        putMessage("Parsing Stopped");  
+    }
+    }
+    else{
+  currentline = getlineNum();
+  putMessage("Cannot Parse Missing an OpenBrace on line " +currentline);
+
+    }
+}
+        else if (lexerrors == 0){ 
+        // Grab the next token.
+        currentToken = getNextToken();
+        if(currentToken.match(openbrace)){
+        putMessage("Parsing [" + currentToken + "]");
+        // A valid parse derives the G(oal) production, so begin there.
+        parseG();
+
+        if (currentToken.match(fail)){
+        // Report the results.
+        putMessage("Parsing Stopped");
+        }  
+        }
+        else{
+           currentline = getlineNum();
+  putMessage("Cannot Parse Missing an OpenBrace on line " + currentline);
+        }
+    }
+        else{
+
+         putMessage("Cannot Parse With Lex Errors");
+
+
+        }
+
     }
     
     function parseG() {
         // A G(oal) production can only be an E(xpression), so parse the E production.
         parseB();
+        if(currentToken.match(fail)){
+          return;
+      }
+        if (obracecounter != cbracecounter){
+        putMessage("Parse Error Braces Not Matching you have " + obracecounter + " Open Braces and " + cbracecounter + " Close Braces!");
+         currentToken = "fail";
+        }
+        if(currentToken.match(fail)){
+          return;
+      }
         currentToken = getNextToken();
+       
         putMessage("Expecting a $");
         if (currentToken.match(endblock)) {
             // We're not done, we we expect to have an op.
@@ -204,129 +261,245 @@
         } else {
             // There is nothing else in the token stream, 
             // and that's cool since E --> digit is valid.
-            putMessage("Parse Error Expecting $ got " + currentToken);
+            putMessage("Parse Expecting $ got " + currentToken);
         }
     }
 
     function parseB() {
-        
-        putMessage("Expecting an OpenBrace");
         if (currentToken.match(openbrace)) {
-            // We're not done, we we expect to have an op.
-            putMessage("Got OpenBrace");
+            putMessage("Expecting an OpenBrace");
+            putMessage("Got an OpenBrace");
+            obracecounter++;
             currentToken = getNextToken();
-        } else {
-            // There is nothing else in the token stream, 
-            // and that's cool since E --> digit is valid.
-            putMessage("Parse Error Expecting {");
-            return;
+        }
+        else{
+
         }
         parseSL();
-        if (currentToken.match(closebrace)) {
-            putMessage("Expecting a CloseBrace");
-            putMessage("Got CloseBrace");
-            currentToken = getNextToken();
-            parseSL();
-        } 
-        else if (currentToken.match(endblock)){
-         //Do nothing
-         }
-        else {
-            // There is nothing else in the token stream, 
-            // and that's cool since E --> digit is valid.
-            putMessage("Parse Error Expecting }");
-        }
+        if(currentToken.match(closebrace)){
+                 putMessage("Expecting a CloseBrace");
+                 cbracecounter++;
+                 putMessage("Got CloseBrace");
+                 currentToken = getNextToken();
+                 parseB();
 
-
-        
-        
-    }
+             }
+     
+ }
 
 function parseSL() {
-putMessage("Expecting a Statement");
-if (currentToken.match(keywords)){
-    putMessage("Got Statement");
+if(currentToken.match(fail)){
+
+    return;
+}
+if (currentToken.match(/print/)){
+    putMessage("Expecting a Statement");
+    putMessage("Got Print Statement");
     parsePS();
+    //parseIf();
     parseSL();
     
  }
+else if(currentToken.match(/int|string|boolean/)){
+parseVD();
+parseSL();
+
+}
+else if(currentToken.match(/while|if/)){
+parseWhileIf();
+parseSL();
+
+}
 else if(currentToken.match(chars)){
-  putMessage("Got Statement");
-    }
-else if(currentToken.match(openbrace)){
-  putMessage("Got Statement");
+  putMessage("Expecting an Assignment Statement");
+  putMessage("Got Identifer " + currentToken);
   currentToken = getNextToken();
+  parseAS();
   parseSL();
     }
- else if(currentToken.match(closebrace)){
-  putMessage("Got Statement");
-  currentToken = getNextToken();
+else if(currentToken.match(openbrace)){
+  parseB();
+    }
+    else{
+        
     }
 
 
 }
+
 
 function parsePS() {
 if (currentToken.match(/print/)){
     putMessage("Expecting Keyword");
-    putMessage("Got keyword print");
+    putMessage("Got Keyword print");
     putMessage("Expecting an OpenParen")
     currentToken = getNextToken();
+    if(currentToken.match(openparen)){
     parsePS();
+       }
+     else{
+        currentline = getlineNum();
+        putMessage("Parse Error Need an OpenParen instead of " + currentToken + " on line " + currentline);
+        currentToken = "fail";
+     }
     }
 else if(currentToken.match(openparen)){
-    putMessage("Got OpenParen");
+    putMessage("Got OpenParen " + currentToken);
     currentToken = getNextToken();
     parseExP();
+    if(currentToken.match(closeparen)){
     putMessage("Expecting a CloseParen");
-    if(currentToken.match(closeparen))
-    putMessage("Got CloseParen");
+    putMessage("Got CloseParen " + currentToken);
     currentToken = getNextToken();
+     }
+    else if(currentToken.match(fail)){
+        return;
+     }
+     else{
+        currentline = getlineNum();
+        putMessage("Parse Error Need a CloseParen instead of " + currentToken + " on line " + currentline);
+        currentToken = "fail";
+    }
   }
 }
+
+function parseVD(){
+parseTY();
+if (currentToken.match(chars)){
+    putMessage("Expecting Identifer");
+    putMessage("Got Identifer " + currentToken)
+    currentToken = getNextToken();
+    parseSL();
+    }
+ else{
+        putMessage("Parse Error Need Identifer instead got " + currentToken);
+         currentToken = "fail";
+
+ }
+}
+function parseTY(){
+if (currentToken.match(/int|string|boolean/)){
+    putMessage("Expecting Type");
+    putMessage("Got Type " + currentToken);
+    currentToken = getNextToken();
+    }
+else{
+parseSL();
+
+}
+
+}
+function parseWhileIf(){
+currentToken = getNextToken();
+if(currentToken.match(openparen)){
+ parseExP();
+ if(currentToken.match(openbrace)){
+ parseB();
+ }
+ else if(currentToken.match(fail)){
+    return;
+ }
+ else{
+    putMessage("Parse Error Need OpenBrace got " + currentToken);
+    currentToken ="fail";
+ }   
+}
+else if(currentToken.match(boolval)){
+parseExP();
+if(currentToken.match(openbrace)){
+parseB();
+}
+else if(currentToken.match(fail)){
+    return;
+ }
+else{
+    currentline = getlineNum();
+    putMessage("Parse Error Need an OpenBrace on " +currentline+ "instead got " + currentToken);
+    currentToken ="fail";
+}
+   }
+else
+   {
+    currentline = getlineNum();
+    putMessage("Parse Error Need An OpenParen or BoolVal on " +currentline+ "instead got " + currentToken);
+    currentToken = "fail";
+   }
+}
+
+function parseAS(){
+    putMessage("Expecting an Assignment");
+    if(currentToken.match(assign)){
+       putMessage("Got an Assignment " + currentToken);
+       currentToken = getNextToken();
+        parseExP();
+        }
+        else{
+        currentline = getlineNum();
+        putMessage("Parse Error Need Assignment instead got " +currentToken+ " on line " + currentline);
+        currentToken = "fail";
+
+        }
+    }
 
 function parseExP(){
 putMessage("Expecting an Expression");
 if (currentToken.match(digits)){
-    putMessage("Expecting a Digit");
-    putMessage("Got a Digit");
+    putMessage("Got a Digit " + currentToken);
     currentToken = getNextToken();
     parseIntExP();
     }
 else if(currentToken.match(openq)){
-putMessage("Expecting an OpenQuote")
+putMessage("Got an OpenQuote " + currentToken)
 currentToken = getNextToken();
 parseCharL();
-putMessage("Expecting a CloseQuote")
 if(currentToken.match(openq)){
-  putMessage("Got a CloseQuote");
+  putMessage("Expecting an Expression");
+  putMessage("Got CloseQuote " +currentToken);
   currentToken = getNextToken();
+}
+else{
+    currentline = getlineNum();
+    putMessage("Error Expecting CloseQuote on line " + currentline);
+    currentToken = "fail";
+    return;
 }
 }
 else if(currentToken.match(openparen)){
-    putMessage("Got OpenParen");
+    putMessage("Got OpenParen " + currentToken);
     currentToken = getNextToken();
     parseExP();
     parseBoolop();
+    if(currentToken.match(fail)){
+        return;
+    }
     parseExP();
 
 if(currentToken.match(closeparen)){
-  putMessage("Expecting a CloseParen")
-  putMessage("Got a CloseParen");
+  putMessage("Expecting a CloseParen");
+  putMessage("Got a CloseParen " + currentToken);
   currentToken = getNextToken();
+}
+else{
+    currentline = getlineNum();
+    putMessage("Error Expecting CloseParen on line " + currentline);
+    return;
 }
 
 }
+else if(currentToken.match(boolval)){
+  putMessage("Got a Boolval " + currentToken);
+  currentToken = getNextToken();
+
+}
 else if(currentToken.match(chars)){
-  putMessage("Expecting an Identifer")
-  putMessage("Got an Identifer");
+  putMessage("Got an Identifer " + currentToken);
   currentToken = getNextToken();
 
 }
 else{
 currentline = getlineNum();
-putMessage("Critical Error No Expression on line " + currentline);
-//parseBooVal();
+putMessage("Critical Error No Expression on line " + currentline + "instead got " + currentToken);
+currentToken = "fail";
 }
 
 }
@@ -334,21 +507,57 @@ putMessage("Critical Error No Expression on line " + currentline);
 function parseIntExP() {
 if (currentToken.match(addition)){
     putMessage("Expecting Operation");
-    putMessage("Got Operation");
+    putMessage("Got Operation " + currentToken);
     currentToken = getNextToken();
     parseExP();
    }
 
 }
 
+function parseCharL(){
+if (currentToken.match(chars)){
+    putMessage("Expecting a Character");
+    putMessage("Got Character " + currentToken);
+    currentToken = getNextToken();
+    parseCharL();
+   }
+else if (currentToken.match(space)){
+    putMessage("Expecting a Space");
+    putMessage("Got Space " + currentToken);
+    currentToken = getNextToken();
+    parseCharL();
+}
+else{
+//Do Nothing
+}
 
+}
+
+function parseBoolop(){
+if (currentToken.match(fail)){
+    return;
+}
+putMessage("Expecting an Equality");
+if (currentToken.match(equality)){
+   putMessage("Got Equality " + currentToken);
+   currentToken = getNextToken();
+}
+else{
+currentline = getlineNum();
+putMessage("Error missing Equality Symbol on line " +currentline+ "instead got " +currentToken);
+currentToken = "fail";
+
+}
+
+
+}
 
     function getNextToken() {
         if (tokenindex < tokenstream.length)
         {
             // If we're not at EOF, then return the next token in the stream and advance the index.
             thisToken = tokenstream[tokenindex];
-            putMessage("Current token:" + thisToken);
+            //putMessage("Current token:" + thisToken);
             tokenindex = tokenindex + 3;
         }
         return thisToken;
@@ -365,10 +574,12 @@ if (currentToken.match(addition)){
         return linenum;
         
     }
+    
 
-
-
-
+function lastindex(){
+value = tokenstream.length - 3;
+return value;
+}
         
         
         

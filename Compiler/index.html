@@ -20,6 +20,9 @@ O ::== + | -
         <img style="float:right;" src="images/CompilerPhases.png" alt="Compiler Phases diagram" />
     </div>    
     <div>
+        <input type="button" id="refresh" value="Click to Clear Code and Re-Enter New Program" 
+                onclick="myFunction();"/>
+        <br>
         <textarea id="taSourceCode" cols="44" rows="20"></textarea>
         <br>
         <input type="button" id="btnCompile" value="Compile" onclick="btnCompile_click();"/>
@@ -53,6 +56,10 @@ O ::== + | -
         currentToken = ' ';
         errorCount = 0;        
     }
+
+    function myFunction() {
+    location.reload();
+}
     
     function btnCompile_click() {        
         // This is executed as a result of the usr pressing the 
