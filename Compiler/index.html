@@ -78,13 +78,13 @@ O ::== + | -
     //If verbose mode is checked then putMessage will become active.
     function putMessage(msg) {
         if (document.getElementById('checked').checked){
-        document.getElementById("taOutput").value += msg + "\n";
+        document.getElementById("taOutput").value += msg + "\n" + "\n";
     }
     }
      
     //PutOutput will always give feedback depite if verbose mode is checked.
     function putOutput(msg) {
-        document.getElementById("taOutput").value += msg + "\n";
+        document.getElementById("taOutput").value += msg + "\n" + "\n";
     }
     
     </script>
