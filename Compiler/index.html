@@ -27,6 +27,8 @@ O ::== + | -
         <br>
         <input type="button" id="btnCompile" value="Compile" onclick="btnCompile_click();"/>
         <br>
+        <input id="checked" type="checkbox" name="verbose" value="check"> Verbose Mode<br>
+        <br>
         <textarea id="taOutput" cols="44" rows="20"></textarea>
     </div>
     <!-- Footer -->
@@ -74,6 +76,12 @@ O ::== + | -
     }
     
     function putMessage(msg) {
+        if (document.getElementById('checked').checked){
+        document.getElementById("taOutput").value += msg + "\n";
+    }
+    }
+
+    function putOutput(msg) {
         document.getElementById("taOutput").value += msg + "\n";
     }
     
