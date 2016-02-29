@@ -1,5 +1,6 @@
 # CompilerJS
-JavaScript Compiler 
+JavaScript Compiler
+
 Best Attempt at a Compiler made in JavaScript that will hopefully be able to compile the famously named "Final Project Grammar". 
 
 To Do List:
