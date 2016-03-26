@@ -23,7 +23,7 @@
         var digits = /[0-9]/;
         var equality = /==|!=/;
         var addition = /\+/;
-        var assign = /=/;
+        var assign = /^=$/;
         var notchar = /=|==|!=|[0-9]|\+|{|}|\(|\)/
         var openbrace = /{/;
         var closebrace = /}/;
