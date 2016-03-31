@@ -27,9 +27,11 @@ O ::== + | -
         <br>
         <input type="button" id="btnCompile" value="Compile" onclick="btnCompile_click();"/>
         <br>
-        <input id="checked" type="checkbox" name="verbose" value="check"> Verbose Mode<br> <!--Added in Verbose Mode CheckBox -->
-        <br>
+        <input id="checked" type="checkbox" name="verbose" value="check"><font color="white">Verbose Mode</font><br> <!--Added in Verbose Mode CheckBox -->
         <textarea id="taOutput" cols="44" rows="20"></textarea>
+        <br>
+        <h4><font color="white">CST</font></h4> 
+        <textarea id="CSToutput" cols="40" rows="20"></textarea>
     </div>
     <!-- Footer -->
     <p>
@@ -40,7 +42,8 @@ O ::== + | -
     <!-- Client-side code down here, per the YSlow advice. 
     // (http://developer.yahoo.com/performance/rules.html#js_bottom) -->
     <script type="text/javascript" src="scripts/utils.js"></script>	
-    <script type="text/javascript" src="scripts/lexer-parse.js"></script>	
+    <script type="text/javascript" src="scripts/lexer-parse.js"></script>
+    <script type="text/javascript" src="scripts/CST.js"></script>	
     <script type="text/javascript">
     // Global variables
     var tokens = "";
@@ -73,6 +76,7 @@ O ::== + | -
         lex();
         // . . . and parse!
         parse();
+        document.getElementById("CSToutput").value = cst.toString();
     }
     
     //If verbose mode is checked then putMessage will become active.
