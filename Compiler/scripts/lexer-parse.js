@@ -1,7 +1,7 @@
 /* lexer.js  */
 //Author: Frank Mitarotonda
 //Date: February 16 2016
-    
+
     var tokenstream = []; //This defined array will store all my created tokens and dynamic scope will let me reference it again in Parse.
     //Constructor that creates token by getting the tokens value and kind.
            function token(value,kind,line)
@@ -181,13 +181,18 @@
     }
 
 //Declares Variables to be used when Parsing.
+  var concretetree = new Tree();
+  var trees = [concretetree];
+  var programcounter = 1;
   var lastindex = 0
   var obracecounter = 0;
   var cbracecounter = 0;
   var tokenindex  = 0;
   var lineindex  = -1; //Set to -1 in order to get linenum. Further explained in getNextToken function. 
-    function parse() {  //Function Parse Program.
-       cst = new Tree(); 
+    
+    function parse() {  //Function Parse Program. 
+        programstring = 'Program '+programcounter;
+        cst = trees[0];
         if (tokenstream[0] == null)//Checks to see if there is any code to be parsed, if not throws Erorr.
         {  
           putOutput("Parse Error Can't Parse You Have No Tokens!");
@@ -205,7 +210,7 @@
                         if(currentToken.match(openbrace)){
                                putMessage("Parsing [" + currentToken + "]");
                                //Parse will then derives the G(oal) production.
-                               cst.addNode("Root", "branch");
+                               //cst.addNode("Program", "branch");
                                parseG();
                                  if (currentToken.match(fail)){  //Checks if token is equal to fail in order to stop parsing.
                                          putOutput("Parsing Stopped");  
@@ -221,6 +226,7 @@
         else if (lexerrors == 0){ //Assumes EOF was included and does same thing as code above except add in EOF. 
              currentToken = getNextToken();
                  if(currentToken.match(openbrace)){
+                   putOutput("Parsing Program "+programcounter);
                    putMessage("Parsing [" + currentToken + "]");
                    parseG();
                         if (currentToken.match(fail)){
@@ -240,7 +246,7 @@
      }
     
     function parseG() { // Parse Goal Function.
-       cst.addNode("Program", "branch");
+       cst.addNode(programstring, "branch");
         parseB(); //Calls Parse Block.
         if(currentToken.match(fail)) 
           {
@@ -263,12 +269,17 @@
             cst.addNode("$", "leaf");
          
               putMessage("EOF reached");
+              putOutput("Parse Completed No Errors on Program " +programcounter);
+             
              if(tokenindex + 3 < tokenstream.length){ //Once EOF is reached checks for more programs.
+                       programcounter++;
+                       newcst = new Tree();
+                       trees.push(newcst);
                        parse(); //Recalls parse if another program is found.
-                       stopsrepeatedOutPutMessage++; //Stops Ouput below from repeating.
+                       //stopsrepeatedOutPutMessage++; //Stops Ouput below from repeating.
                     
              }
-             putOutput("Parse Completed No Errors");
+             //putOutput("Parse Completed No Errors on Program " +programcounter);
 
         }
         else if(currentToken.match(fail))

@@ -33,9 +33,14 @@ O ::== + | -
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         <font color="white">CST</font>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <font color="white">AST</font>
         <br> 
         <textarea id="taOutput" cols="44" rows="20"></textarea> 
         <textarea id="CSToutput" cols="40" rows="20"></textarea>
+        <textarea id="ASToutput" cols="40" rows="20"></textarea>
         <br>
     </div>
     <!-- Footer -->
@@ -46,9 +51,9 @@ O ::== + | -
     </p>
     <!-- Client-side code down here, per the YSlow advice. 
     // (http://developer.yahoo.com/performance/rules.html#js_bottom) -->
+    <script type="text/javascript" src="scripts/CST.js"></script>
     <script type="text/javascript" src="scripts/utils.js"></script>	
-    <script type="text/javascript" src="scripts/lexer-parse.js"></script>
-    <script type="text/javascript" src="scripts/CST.js"></script>	
+    <script type="text/javascript" src="scripts/lexer-parse.js"></script>	
     <script type="text/javascript">
     // Global variables
     var tokens = "";
@@ -82,6 +87,7 @@ O ::== + | -
         // . . . and parse!
         parse();
         document.getElementById("CSToutput").value = cst.toString();
+        document.getElementById("ASToutput").value = ast.toString();
     }
     
     //If verbose mode is checked then putMessage will become active.
