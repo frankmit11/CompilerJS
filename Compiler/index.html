@@ -61,6 +61,7 @@ O ::== + | -
     var currentToken = "";
     var errorCount = 0;
     var EOF = "$";
+    var t = false;
 
     function init() {
         // Clear the message box.
@@ -86,8 +87,10 @@ O ::== + | -
         lex();
         // . . . and parse!
         parse();
+        if (t == true){
         document.getElementById("CSToutput").value = cst.toString();
         document.getElementById("ASToutput").value = ast.toString();
+    }
     }
     
     //If verbose mode is checked then putMessage will become active.
@@ -101,7 +104,8 @@ O ::== + | -
     function putOutput(msg) {
         document.getElementById("taOutput").value += msg + "\n" + "\n";
     }
-    
+
+
     </script>
 </body>
 </html>

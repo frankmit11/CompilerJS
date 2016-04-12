@@ -180,9 +180,15 @@
           
     }
 
+
 //Declares Variables to be used when Parsing.
   var concretetree = new Tree();
-  var trees = [concretetree];
+  var abstract = new Tree();
+  var word = [];
+  var trees = [];
+  var i = 0;
+  trees.push(concretetree);
+  var atrees = [abstract];
   var programcounter = 1;
   var lastindex = 0
   var obracecounter = 0;
@@ -190,9 +196,12 @@
   var tokenindex  = 0;
   var lineindex  = -1; //Set to -1 in order to get linenum. Further explained in getNextToken function. 
     
-    function parse() {  //Function Parse Program. 
-        programstring = 'Program '+programcounter;
+    function parse() {  //Function Parse Program.
+        t = false;
+        programstringCST = 'Program '+programcounter;
+        programstringAST = 'Block for Program '+programcounter;
         cst = trees[0];
+        ast = atrees[0];
         if (tokenstream[0] == null)//Checks to see if there is any code to be parsed, if not throws Erorr.
         {  
           putOutput("Parse Error Can't Parse You Have No Tokens!");
@@ -208,6 +217,7 @@
                 currentToken = getNextToken();
                         //Checks to See if we have an OpenBrace and the start of a block statement.
                         if(currentToken.match(openbrace)){
+                               putOutput("Parsing Program "+programcounter);
                                putMessage("Parsing [" + currentToken + "]");
                                //Parse will then derives the G(oal) production.
                                //cst.addNode("Program", "branch");
@@ -246,7 +256,8 @@
      }
     
     function parseG() { // Parse Goal Function.
-       cst.addNode(programstring, "branch");
+       cst.addNode(programstringCST, "branch");
+       ast.addNode(programstringAST, "branch");
         parseB(); //Calls Parse Block.
         if(currentToken.match(fail)) 
           {
@@ -267,14 +278,20 @@
         putMessage("Expecting a $"); //Once Block completes expecting EOF. 
         if (currentToken.match(eof)){//Check for EOF
             cst.addNode("$", "leaf");
-         
+            cst.endChildren();
+            ast.endChildren();
+            t = true;
               putMessage("EOF reached");
               putOutput("Parse Completed No Errors on Program " +programcounter);
              
              if(tokenindex + 3 < tokenstream.length){ //Once EOF is reached checks for more programs.
                        programcounter++;
-                       newcst = new Tree();
-                       trees.push(newcst);
+                       i++;
+                       //newcst = new Tree();
+                       //newast = new Tree();
+                       //trees[i] = newcst;
+                       //atrees[i] = newast;
+                       //ast.addNode(programstring1, "leaf");
                        parse(); //Recalls parse if another program is found.
                        //stopsrepeatedOutPutMessage++; //Stops Ouput below from repeating.
                     
@@ -291,9 +308,8 @@
             currentline = getlineNum();
             putOutput("Parse Error Expecting $ got " + currentToken+ " on line " +currentline); //Outputs error if EOF is current token. 
         }
-        cst.endChildren();
+        
   }
-
     function parseB() { //Parse Block function
         cst.addNode("Block", "branch");
         putMessage("Expecting an OpenBrace"); 
@@ -323,18 +339,17 @@
      }
  
  function parseSL(){//Parse Statement List
-    cst.addNode("StatementList", "branch");
- 
     if (currentToken.match(statement)){//Checks if token matches start of a statment in the grammer. 
-        cst.addNode("Statement", "branch");
         parseS();//Calls Parse Statement.
         parseSL();//Recursivly calls ParseStatement List to check for more statements.
     }
     else{
      //Do nothing if statment list is empty.
+     cst.endChildren();
+     cst.endChildren();
+     cst.addNode("StatementList", "branch");
      cst.addNode("Epsilon", "leaf");
      }
-   cst.endChildren();
  }
 /*Parse Statement function. Once Detremined a token begins with a statment, looks for a match of that statement 
 increments the token and then will run Parse function for said statement. Once that complete Parse Statemet is then recursivly called to 
@@ -346,14 +361,21 @@ if(currentToken.match(fail)){
 return;
 }
 if (currentToken.match(/print/)){
-cst.addNode("PrintStatment", "branch"); 
+cst.addNode("StatementList", "branch");
+cst.addNode("Statement", "branch");
+cst.addNode("PrintStatment", "branch");
+//ast.endChildren();
+ast.addNode("PrintStatment", "branch"); 
 putMessage("Expecting Print Statement");
 parsePS(); //Parse Print Statement function.
 parseS();
  
  }
 else if(currentToken.match(/int|string|boolean/)){
+cst.addNode("StatementList", "branch");
+cst.addNode("Statement", "branch");
 cst.addNode("VarDecl", "branch"); 
+ast.addNode("VarDecl", "branch"); 
 putMessage("Expecting Type Statement");
 parseVD(); //Parse Variable Decleration function.
 parseS();
@@ -361,7 +383,10 @@ parseS();
 }
 else if(currentToken.match(/while/))
 {
-cst.addNode("WhileStatment", "branch"); 
+cst.addNode("StatementList", "branch");
+cst.addNode("Statement", "branch");
+cst.addNode("WhileStatment", "branch");
+ast.addNode("WhileStatment", "branch"); 
 putMessage("Expecting While Statement");
 parseWhile(); //Parse While function
 parseS();
@@ -369,7 +394,10 @@ parseS();
 }
 else if(currentToken.match(/if/))
 {
+cst.addNode("StatementList", "branch");
+cst.addNode("Statement", "branch");
 cst.addNode("IfStatment", "branch"); 
+ast.addNode("IfStatment", "branch"); 
 putMessage("Expecting If Statement");
 parseIf(); //Parse If function 
 parseS();
@@ -377,23 +405,29 @@ parseS();
 }
 else if(currentToken.match(chars))
 {
+cst.addNode("StatementList", "branch");
+cst.addNode("Statement", "branch");
 cst.addNode("AssignmentStatment", "branch"); 
+ast.endChildren();
+ast.addNode("Assign", "branch");
 putMessage("Got Begining of an Assignment Statement  " + currentToken);
 cst.addNode("Identifer", "branch"); 
 cst.addNode("Char", "branch"); 
-cst.addNode(currentToken, "leaf"); 
+cst.addNode(currentToken, "leaf");
+ast.addNode(currentToken, "leaf");  
 currentToken = getNextToken();
 parseAS(); //Parse Assignment Statement function.
 parseS();
 }
 else if(currentToken.match(openbrace))
 {
+ast.addNode("Block", "branch");
 parseB(); //If an Open Brace is found Block Statment is called.
 }
 else{
-      //Do Nothing    
+//Do Nothing    
 }
-cst.endChildren();
+//cst.endChildren();
 }
 
 
@@ -422,6 +456,8 @@ else if(currentToken.match(openparen)){
     }
     putMessage("Expecting a CloseParen"); 
     if(currentToken.match(closeparen)){ //Once Expression is finished checks for ClosedParen.
+    cst.endChildren();
+    cst.endChildren();
     cst.addNode(")", "leaf");
     putMessage("Got CloseParen " + currentToken);
     currentToken = getNextToken();
@@ -436,7 +472,7 @@ else if(currentToken.match(openparen)){
         currentToken = "fail";
     }
   }
-  cst.endChildren();
+  ast.endChildren();
 }
 
 function parseVD(){//Parse Variable Decleration fucntion.
@@ -448,6 +484,8 @@ if (currentToken.match(chars)){ //Looks for identifer after type match.
     cst.addNode("Char", "branch");
     putMessage("Got Identifer " + currentToken)
     cst.addNode(currentToken, "leaf");
+    ast.addNode(currentToken, "leaf");
+    ast.endChildren();
     currentToken = getNextToken();
     parseS();
     }
@@ -465,12 +503,14 @@ if (currentToken.match(chars)){ //Looks for identifer after type match.
 
  }
 cst.endChildren();
+ast.endChildren();
 }
 function parseTY(){ //Parse Type function
     putMessage("Expecting Name of Type");
 if (currentToken.match(/int|string|boolean/)){ //Checks if token matchs one of the following types
     putMessage("Got Type of Name " + currentToken);
     cst.addNode(currentToken, "leaf");
+    ast.addNode(currentToken, "leaf");
     currentToken = getNextToken();
     }
 else{
@@ -568,8 +608,8 @@ function parseAS(){//Parse Assignment Statement
     putMessage("Expecting an Assignment");
     if(currentToken.match(assign)){//Checks for assignemnt token following an identifer.
        putMessage("Got an Assignment " + currentToken);
-       cst.addNode(currentToken, "leaf"); 
-       currentToken = getNextToken();
+       cst.addNode(currentToken, "leaf");  
+        currentToken = getNextToken();
         parseExP(); //Calls ParseExp if currentToken is an assignment.
         }
         //Throws an error if an assignment does not follow an identifer.
@@ -589,7 +629,17 @@ will begin to be parsed*/
 function parseExP(){//Parse Expression function 
 cst.addNode("Expr", "branch");
 putMessage("Expecting an Expression");
-if (currentToken.match(digits)){// Matches a digit thats begins an int expression.
+var next = lookahead();
+if (currentToken.match(digits) && !next.match(addition)){
+       cst.addNode("IntExpr", "branch");
+       putMessage("Got a Digit " + currentToken);
+       cst.addNode("Digit", "branch");
+       cst.addNode(currentToken, "leaf");
+        ast.addNode(currentToken, "leaf");
+        currentToken = getNextToken();
+        parseIntExP();
+}
+else if (currentToken.match(digits)){// Matches a digit thats begins an int expression.
     cst.addNode("IntExpr", "branch");
     putMessage("Got a Digit " + currentToken);
     cst.addNode("Digit", "branch");
@@ -610,6 +660,8 @@ putMessage("Expecting a CloseQuote");//Once Parse Character List finishes looks 
 if(currentToken.match(openq)){
   putMessage("Got CloseQuote " +currentToken);
   cst.addNode(currentToken, "leaf");
+  var string = word.join("");
+  ast.addNode(string, "leaf");
   currentToken = getNextToken();
 }
 /*If closequote is not matched throws an error. I dont think this else will ever be reached given the test cases
@@ -626,6 +678,7 @@ else if(currentToken.match(openparen)){ //Looks to match an OpenParen which star
     cst.addNode("BooleanExpr", "branch");
     putMessage("Got OpenParen " + currentToken);
     cst.addNode("(", "leaf");
+    ast.addNode("TestEquality", "branch");
     currentToken = getNextToken();
     parseExP();//Recursivly Calls Parse Exprssion looking for another expression.
     parseBoolop();//Calls Parse Boolean Operation in order to satisfy a boolean expression.
@@ -638,6 +691,7 @@ if(currentToken.match(closeparen)){//Looks for CloseParen in order to satisy the
   putMessage("Expecting a CloseParen");
   putMessage("Got a CloseParen " + currentToken);
   cst.addNode(")", "leaf");
+  ast.endChildren();
   currentToken = getNextToken();
 }
 //If close paren is missing throws as error. 
@@ -653,6 +707,7 @@ else if(currentToken.match(boolval)){ //Checks if the expression is a boolean ex
   cst.addNode("Boolval", "branch");
   putMessage("Got a Boolval " + currentToken);
   cst.addNode(currentToken, "leaf");
+  ast.addNode(currentToken, "leaf");
   currentToken = getNextToken();//If so grab next token and move on.
 
 }
@@ -661,6 +716,7 @@ else if(currentToken.match(chars)){//Checks if current token is an identifier.
   cst.addNode("Char", "branch");
   putMessage("Got an Identifer " + currentToken);
   cst.addNode(currentToken, "leaf");
+  ast.addNode(currentToken, "leaf");
   currentToken = getNextToken();//If so grab next token and move on.
 
 }
@@ -676,10 +732,14 @@ cst.endChildren();
 function parseIntExP() {//Parse Integer Expression function.
 if (currentToken.match(addition)){//Checks if currentToken matches the only valid operation in the language.  
     cst.addNode("Intop", "branch");
+    ast.addNode("Add", "branch");
+    var firstnumber = getbehindToken();
+    ast.addNode(firstnumber, "leaf");
     putMessage("Expecting an Operation");
     putMessage("Got Operation " + currentToken);
     cst.addNode(currentToken, "leaf");
     currentToken = getNextToken();
+    //currentToken = getNextToken();
     parseExP();//If so calls Parse Expression to look for next expression.
    }
 cst.endChildren();
@@ -687,6 +747,7 @@ cst.endChildren();
 
 function parseCharL(){//Parse Character List function.
 if (currentToken.match(chars)){//Checks if currentToken matchs a character.
+    word.push(currentToken);
     cst.addNode("CharList", "branch");
     putMessage("Expecting a Character");
     cst.addNode("Char", "branch");
@@ -714,6 +775,7 @@ else{
 //Do Nothing
 }
 cst.endChildren();
+ast.endChildren();
 }
 
 function parseBoolop(){//Parse Boolean OPeration function 
@@ -736,6 +798,8 @@ currentToken = "fail";
      }
 cst.endChildren();
 }
+
+
 
     function getNextToken() { //Function gets next token in the stream.
         if (tokenindex < tokenstream.length) //Checks if token index is less than the tokenstream length.
@@ -762,6 +826,18 @@ function getlastindex(){ //Gets lastindex of something in the tokenstream.
 lastindex = tokenstream.length - 3; //Subtracts length by 3 to get last token value.
 return lastindex;//Returns lineindex.
 }
+
+ function getbehindToken() { 
+            thatToken = tokenstream[tokenindex - 6]; 
+           return thatToken;//Returns the token's value.
+        
+    }
+
+function lookahead() { 
+            targetToken = tokenstream[tokenindex]; 
+           return targetToken;//Returns the token's value.
+        
+    }
         
         
         

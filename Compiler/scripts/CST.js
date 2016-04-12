@@ -12,11 +12,13 @@ function Tree() {
     
     this.root = null;  // Note the NULL root node of this tree.
     this.cur = {};     // Note the EMPTY current node of the tree we're building.
+    this.thing = "";
 
 
     // -- ------- --
     // -- Methods --
     // -- ------- --
+
 
     // Add a node: kind in {branch, leaf}.
     this.addNode = function(name, kind) {
@@ -47,6 +49,7 @@ function Tree() {
             // ... update the CURrent node pointer to ourselves.
             this.cur = node;
         }
+
     };
 
     // Note that we're done with this branch of the tree...
