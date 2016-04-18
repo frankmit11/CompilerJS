@@ -22,8 +22,17 @@ O ::== + | -
     <div>
         <input type="button" id="refresh" value="Click to Clear Code and Re-Enter New Program" 
                 onclick="myFunction();"/>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <font color="white">AST</font>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <font color="white">Symbol Table</font>
         <br>
         <textarea id="taSourceCode" cols="44" rows="20"></textarea>
+        <textarea id="ASToutput" cols="40" rows="20"></textarea>
+        <textarea id="SYTABLEoutput" cols="40" rows="20"></textarea>
         <br>
         <input type="button" id="btnCompile" value="Compile" onclick="btnCompile_click();"/>
         <br>
@@ -33,14 +42,9 @@ O ::== + | -
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         <font color="white">CST</font>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        <font color="white">AST</font>
         <br> 
         <textarea id="taOutput" cols="44" rows="20"></textarea> 
         <textarea id="CSToutput" cols="40" rows="20"></textarea>
-        <textarea id="ASToutput" cols="40" rows="20"></textarea>
         <br>
     </div>
     <!-- Footer -->
@@ -66,6 +70,8 @@ O ::== + | -
     function init() {
         // Clear the message box.
         document.getElementById("taOutput").value = "";
+        document.getElementById("ASToutput").value = "The program number displayed is not a branch in the AST, its purpose is to distinguish between multiple programs.";
+        document.getElementById("SYTABLEoutput").value = "Warning: Symbol Table/Type and Scope Checking Will Not Function Properly With Multiple Programs";
         // Set the initial values for our globals.
         tokens = "";
         tokenIndex = 0;
@@ -90,6 +96,12 @@ O ::== + | -
         if (t == true){
         document.getElementById("CSToutput").value = cst.toString();
         document.getElementById("ASToutput").value = ast.toString();
+        document.getElementById("SYTABLEoutput").value = "";
+        if(haveabool == 1){
+        typecheckboolean();
+         }
+        fixarray();
+        type();
     }
     }
     
@@ -103,6 +115,10 @@ O ::== + | -
     //PutOutput will always give feedback depite if verbose mode is checked.
     function putOutput(msg) {
         document.getElementById("taOutput").value += msg + "\n" + "\n";
+    }
+
+    function tableadd(msg) {
+        document.getElementById("SYTABLEoutput").value += msg + "\n";
     }
 
 

@@ -3,6 +3,7 @@
 //Date: February 16 2016
 
     var tokenstream = []; //This defined array will store all my created tokens and dynamic scope will let me reference it again in Parse.
+    table = [];
     //Constructor that creates token by getting the tokens value and kind.
            function token(value,kind,line)
           {
@@ -175,7 +176,7 @@
          lexerrors++; 
          }
        }
-        putOutput("Token Stream [" + tokenstream + "]"); //Ouputs token stream so that I can visualize things this might change depedning if you like it or not.
+        //putOutput("Token Stream [" + tokenstream + "]"); //Ouputs token stream so that I can visualize things this might change depedning if you like it or not.
 
           
     }
@@ -183,11 +184,17 @@
 
 //Declares Variables to be used when Parsing.
   var concretetree = new Tree();
+  var scopevals = [];
+  var staticarray = [];
+  var valarray = [];
   var abstract = new Tree();
   var word = [];
+  var prevscope = [];
   var trees = [];
+  var array = [];
   var i = 0;
   trees.push(concretetree);
+  haveabool = 0;
   var atrees = [abstract];
   var programcounter = 1;
   var lastindex = 0
@@ -195,6 +202,25 @@
   var cbracecounter = 0;
   var tokenindex  = 0;
   var lineindex  = -1; //Set to -1 in order to get linenum. Further explained in getNextToken function. 
+  var increase = 0;
+  var objarray = [];
+  var symbarray = [];
+  var boolcheck = [];
+  var print = 0;
+
+
+   function programscope(counter){
+   this.level = counter;
+   this.symbols = []; 
+  } 
+   
+   function createScope(num){
+   scope = new programscope(num);
+   }
+
+   function createScopeVal(num){
+   scopeval = new programscope(num);
+   }
     
     function parse() {  //Function Parse Program.
         t = false;
@@ -257,7 +283,7 @@
     
     function parseG() { // Parse Goal Function.
        cst.addNode(programstringCST, "branch");
-       ast.addNode(programstringAST, "branch");
+       ast.addNode(programstringAST, "branch"); //Not a part of the AST only distinguishes between programs
         parseB(); //Calls Parse Block.
         if(currentToken.match(fail)) 
           {
@@ -281,20 +307,25 @@
             cst.endChildren();
             ast.endChildren();
             t = true;
-              putMessage("EOF reached");
-              putOutput("Parse Completed No Errors on Program " +programcounter);
+            //var complete = table.join("\n----------------\n");
+            //tableadd(complete);
+            //tableadd(table);
+            //tableadd(valarray);
+            //tableadd(scopevals);
+            //tableadd(boolcheck);
+            objarray = [];
+            putMessage("EOF reached");
+            putOutput("Parse Completed No Errors on Program " +programcounter);
              
              if(tokenindex + 3 < tokenstream.length){ //Once EOF is reached checks for more programs.
+
                        programcounter++;
-                       i++;
-                       //newcst = new Tree();
-                       //newast = new Tree();
-                       //trees[i] = newcst;
-                       //atrees[i] = newast;
-                       //ast.addNode(programstring1, "leaf");
+                       table = new Array();
+                       cst.addNode("Building New CST...", "leaf");
+                       ast.addNode("Building New AST...", "leaf");
                        parse(); //Recalls parse if another program is found.
-                       //stopsrepeatedOutPutMessage++; //Stops Ouput below from repeating.
-                    
+
+                       //stopsrepeatedOutPutMessage++; //Stops Ouput below from repeating.     
              }
              //putOutput("Parse Completed No Errors on Program " +programcounter);
 
@@ -313,6 +344,10 @@
     function parseB() { //Parse Block function
         putMessage("Expecting an OpenBrace"); 
         if (currentToken.match(openbrace)) { //Looks for { in order to start block
+            createScope(increase);
+            createScopeVal(increase);
+            x = scope.level; 
+            objarray.push(x);
             cst.addNode("Block", "branch");
             ast.addNode("Block", "branch");
             cst.addNode("{", "leaf");
@@ -325,15 +360,27 @@
            //Do nothing.
         }
         parseSL(); //Runs Parse Statement List. 
+        //tableadd(scope.symbols);
+        staticarray.push(scope.symbols);
+        scopevals.push(scopeval.symbols);
         if(currentToken.match(fail))
         {
         return;
         }
         putMessage("Expecting a CloseBrace");
         if(currentToken.match(closebrace)){ //Checks if token has reached a closed brace.
+              ast.endChildren();
               cst.addNode("}", "leaf");
               cbracecounter++;//Counts CloseBrace for ever match.
               putMessage("Got CloseBrace");
+              var checkforscope;
+              checkforscope = lookahead();
+              if(checkforscope.match(keywords) || checkforscope.match(chars)){
+                objarray.push(0);
+                createScope(0);
+                //xtableadd("Scope "+ scope.level);
+              }
+              //table = new Array();
               currentToken = getNextToken();//Gets next token.
          }
          cst.endChildren();
@@ -418,14 +465,25 @@ putMessage("Got Begining of an Assignment Statement  " + currentToken);
 cst.addNode("Identifer", "branch"); 
 cst.addNode("Char", "branch"); 
 cst.addNode(currentToken, "leaf");
-ast.addNode(currentToken, "leaf");  
+ast.addNode(currentToken, "leaf");
+if (scope.level == 0){
+
+        valarray.push(currentToken);
+         }
+        if (scope.level > 0){
+        scopeval.symbols.push(currentToken);
+         }
 currentToken = getNextToken();
 parseAS(); //Parse Assignment Statement function.
+//typeCheck();
+//putOutput(array[0]);
 ast.endChildren();
 parseS();
 }
 else if(currentToken.match(openbrace))
 {
+//prevscope.push(table);
+increase++;
 parseB(); //If an Open Brace is found Block Statment is called.
 }
 else{
@@ -433,6 +491,8 @@ else{
 }
 
 }
+
+
 
 
 function parsePS() { //Parse Print Statement function. 
@@ -454,7 +514,9 @@ else if(currentToken.match(openparen)){
     cst.addNode("(", "leaf");
     putMessage("Got OpenParen " + currentToken); //Checks if next token after print is OpenParen.
     currentToken = getNextToken();
+    print = 1;
     parseExP(); //If so calls ParseExpression because an expression is expected next.
+    print = 0;
     if(currentToken.match(fail)){
         return;
     }
@@ -485,6 +547,15 @@ parseTY();//Once a Parse Type is matched in ParseStatement runs ParseType functi
 putMessage("Expecting Identifer");
 cst.addNode("Identifer", "branch");
 if (currentToken.match(chars)){ //Looks for identifer after type match.
+    currentline = getlineNum();
+    if (scope.level == 0){
+
+        symbarray.push(currentToken);
+         }
+        if (scope.level > 0){
+        scope.symbols.push(currentToken);
+        //tableadd(currentToken);
+         }
     cst.addNode("Char", "branch");
     putMessage("Got Identifer " + currentToken)
     cst.addNode(currentToken, "leaf");
@@ -511,6 +582,17 @@ function parseTY(){ //Parse Type function
     putMessage("Expecting Name of Type");
 if (currentToken.match(/int|string|boolean/)){ //Checks if token matchs one of the following types
     putMessage("Got Type of Name " + currentToken);
+    if (scope.level == 0){
+
+        symbarray.push(currentToken);
+         }
+         if (scope.level > 0){
+
+        scope.symbols.push(currentToken);
+        //staticarray.push(scope.symbols);
+        //tableadd(currentToken);
+        //tableadd(staticarray);
+         }
     cst.addNode(currentToken, "leaf");
     ast.addNode(currentToken, "leaf");
     currentToken = getNextToken();
@@ -573,6 +655,7 @@ currentToken = getNextToken();
 if(currentToken.match(openparen)){
  parseExP();
  if(currentToken.match(openbrace)){
+ increase++;
  parseB();
  }
  else if(currentToken.match(fail)){
@@ -587,6 +670,7 @@ if(currentToken.match(openparen)){
 else if(currentToken.match(boolval)){
 parseExP();
 if(currentToken.match(openbrace)){
+increase++;
 parseB();
 }
 else if(currentToken.match(fail)){
@@ -635,7 +719,15 @@ putMessage("Expecting an Expression");
 var next = lookahead();
 if (currentToken.match(digits) && !next.match(addition)){
        cst.addNode("IntExpr", "branch");
+       boolcheck.push(currentToken);
        putMessage("Got a Digit " + currentToken);
+       if (scope.level == 0){
+
+        valarray.push(currentToken);
+         }
+        if (scope.level > 0){
+        scopeval.symbols.push(currentToken);
+         }
        cst.addNode("Digit", "branch");
        cst.addNode(currentToken, "leaf");
        ast.addNode(currentToken, "leaf");
@@ -662,7 +754,16 @@ if(currentToken.match(fail)){
 putMessage("Expecting a CloseQuote");//Once Parse Character List finishes looks to match with a close quote.
 if(currentToken.match(openq)){
   putMessage("Got CloseQuote " +currentToken);
+  boolcheck.push(currentToken);
+  if (scope.level == 0){
+
+        valarray.push(currentToken);
+         }
+        if (scope.level > 0){
+        scopeval.symbols.push(currentToken);
+         }
   cst.addNode(currentToken, "leaf");
+  array.push(currentToken);
   var string = word.join("");
   ast.addNode(string, "leaf");
   word = [];
@@ -680,8 +781,10 @@ else{
 }
 else if(currentToken.match(openparen)){ //Looks to match an OpenParen which starts off a boolean expression.
     cst.addNode("BooleanExpr", "branch");
+    haveabool = 1;
     putMessage("Got OpenParen " + currentToken);
     cst.addNode("(", "leaf");
+    boolcheck.push(currentToken);
     ast.addNode("TestEquality", "branch");
     currentToken = getNextToken();
     parseExP();//Recursivly Calls Parse Exprssion looking for another expression.
@@ -694,6 +797,16 @@ else if(currentToken.match(openparen)){ //Looks to match an OpenParen which star
 if(currentToken.match(closeparen)){//Looks for CloseParen in order to satisy the boolean expression.
   putMessage("Expecting a CloseParen");
   putMessage("Got a CloseParen " + currentToken);
+  if (scope.level == 0){
+
+        valarray.push(currentToken);
+         }
+        if (scope.level > 0){
+        scopeval.symbols.push(currentToken);
+        var b = valarray.indexOf(currentToken);
+        valarray.splice(b - 1, 1);
+        valarray.splice(b - 2, 1);
+         }
   cst.addNode(")", "leaf");
   ast.endChildren();
   currentToken = getNextToken();
@@ -710,12 +823,28 @@ else{
 else if(currentToken.match(boolval)){ //Checks if the expression is a boolean expresion that is a boolval.
   cst.addNode("Boolval", "branch");
   putMessage("Got a Boolval " + currentToken);
+  boolcheck.push(currentToken);
+  if (scope.level == 0){
+
+        valarray.push(currentToken);
+         }
+        if (scope.level > 0){
+        scopeval.symbols.push(currentToken);
+         }
   cst.addNode(currentToken, "leaf");
   ast.addNode(currentToken, "leaf");
   currentToken = getNextToken();//If so grab next token and move on.
 
 }
 else if(currentToken.match(chars)){//Checks if current token is an identifier.
+  boolcheck.push(currentToken);
+  if (scope.level == 0 && print == 0){
+
+        valarray.push(currentToken);
+         }
+        if (scope.level > 0 && print == 0){
+        scopeval.symbols.push(currentToken);
+         }
   cst.addNode("Identifer", "branch");
   cst.addNode("Char", "branch");
   putMessage("Got an Identifer " + currentToken);
@@ -823,6 +952,334 @@ cst.endChildren();
         return linenum;//Returns linenum.
         
     }
+
+function typecheckboolean(){
+testequal = [];
+for (var e = 0; e < boolcheck.length; e++) {
+     var types = boolcheck[e];
+     if (types == "("){
+   firstval = boolcheck[e+1]
+   secondval = boolcheck[e+2]
+   testequal.push(firstval);
+   testequal.push(secondval);
+     }
+  var val1 = testequal[0];
+  var val2 = testequal[1];
+if(val1.match(digits) && val2.match(digits)){
+//Do nothing
+
+}
+else if(val1 == "\"" && val2 == "\""){
+//Do nothing
+
+}
+else if (val1.match(boolval) && val2.match(boolval)){
+
+// Do nothing
+}
+else if(val1 == "(" && val2 == "("){
+//Do nothing
+
+}
+else if (val1.match(chars) && val2.match(chars)){
+
+// Do nothing
+}
+else{
+
+putOutput("Type Error: Boolean Expresson requires matching types");
+return;
+
+    }
+
+  }
+}
+
+function fixarray(){
+scopevals.unshift(valarray);
+scopevals.splice(-1,1);
+for (var q = 0; q < scopevals.length; q++) {
+         pos = scopevals[q]
+        for (var r = 0; r < pos.length; r++) {
+          var oneval = pos[r];
+          if(pos[0] == ")"){ 
+          //Do nothing             
+       }
+       else if(oneval == ")" ){
+        pos.splice(r - 1, 1);
+        pos.splice(r - 2, 1);
+
+
+       }
+     }
+   }
+}
+    
+
+    function type(){
+      staticarray.unshift(symbarray);
+      staticarray.splice(-1,1);
+      tableadd("  Symbol Table");
+      tableadd("-----------------");
+      for (a = 0; a < staticarray.length; a++) {
+         tableadd("Scope "+ a);
+         tableadd("----------");
+         values = staticarray[a];
+         if(staticarray.length == 1 && values.length == 0){
+
+          putOutput("Error: Must Declare Variables");
+         
+
+         }
+         else if(a > 0 && values.length == 0 ){
+         scopechange = staticarray[a-1];
+         if(scopechange.length == 0){
+
+          putOutput("Error: Variables in Scope " +a+ " are undeclared");
+          return;
+
+         }
+
+         }
+         for (var j = 0; j < values.length; j++) {
+          types = values[j];
+          tableadd(values[j]);
+          if(types.match(/int/)){
+             i = values[j+1];
+             checkmulitple();
+             checkintset(); 
+             number =  1;
+             checkint();
+           }
+           else if(types.match(/string/)){
+             s = values[j+1]; 
+             checkmulitple();
+             checkstringset();
+             number =  2;
+             checkstring();
+           }
+           else if(types.match(/boolean/)){
+             b = values[j+1];
+             checkmulitple(); 
+             checkboolset();
+             number =  3;
+             checkbool();
+           }
+
+                
+         }
+    }
+
+}
+
+function checkmulitple(){
+  var count = 0;
+for (var g = 0; g < values.length; g++) {
+    var match = values[g];
+    if(match == i){
+      count++;
+     }
+
+     }
+     if(count > 1){
+      putOutput("Error: Variable " +match+ " has been declared more than once");
+      return;
+   } 
+}
+
+
+
+
+function checkintset(){
+for (var t = 0; t < scopevals.length; t++) {
+  check = scopevals[t];
+if(isInArray(i,check) != true){
+   check = scopevals[t+1];
+   if(check == null || isInArray(i,check) != true){
+
+   putOutput("Error: The value " +i+ " is not used and values must be declared");
+   return;
+   }
+
+
+         }
+         
+
+    }
+}
+
+function checkstringset(){
+for (var u = 0; u < scopevals.length; u++) {
+  check2 = scopevals[u];
+if(isInArray(s,check2) != true){
+   check2 = scopevals[u+1];
+   if(check2 == null || isInArray(s,check2) != true){
+
+   putOutput("Error: The value " +s+ " is not used and other values must be declared");
+   return;
+   }
+
+
+         }
+   }
+}
+
+function checkboolset(){
+for (var w = 0; w < scopevals.length; w++) {
+  check3 = scopevals[w];
+if(check3 == null || isInArray(b,check3) != true){
+  check3 = scopevals[w+1];
+ if(isInArray(b,check3) != true){
+
+   putOutput("Error: The value " +b+ " is not used and other values must be declared");
+   return;
+   }
+
+       }
+   }
+}
+
+
+
+    function checkint(){
+   for (var q = 0; q < scopevals.length; q++) {
+         vals = scopevals[q];
+        for (var r = 0; r < vals.length; r++) {
+          var oneval = vals[r];
+          if(oneval.match(chars)){
+            var error = staticarray[q];
+            if(q == 0 && isInArray(oneval, error) == false){
+               putOutput("Decleration Error: " +oneval+ " has not been declared");
+               return;
+
+               }
+              if(q > 0 && isInArray(oneval, error) == false){
+                error = staticarray[q-1];
+                 if(isInArray(oneval, error) == false){
+                  putOutput("Decleration Error: " +oneval+ " has not been declared in the correct scope");
+                  return;
+                }
+
+
+               }
+              if(oneval == i){
+               putMessage("Variable " +i+ " has been declared");
+               var intval = vals[r+1];
+               if(intval == null){
+                return;
+               }
+               if(intval.match(digits) && number == 1){
+
+              //Do Nothing
+               }
+               else{
+              putOutput("Type Error: " +i+ " needs to be given valid Integer Value");
+              return;
+
+               }
+
+
+              }
+           
+         }
+       }
+     }
+   }
+
+
+
+   function checkstring(){
+   for (var q = 0; q < scopevals.length; q++) {
+         vals = scopevals[q]
+        for (var r = 0; r < vals.length; r++) {
+          var oneval = vals[r];
+          if(oneval.match(chars)){
+            var error = staticarray[q];
+            if(q == 0 && isInArray(oneval, error) == false){
+               putOutput("Decleration Error: " +oneval+ " has not been declared");
+               return;
+
+               }
+              if(q > 0 && isInArray(oneval, error) == false){
+                error = staticarray[q-1];
+                 if(isInArray(oneval, error) == false){
+                  putOutput("Decleration Error: " +oneval+ " has not been declared in the correct scope");
+                  return;
+                }
+
+
+               }
+              if(oneval == s){
+               putMessage("Variable " +s+ " has been declared");
+               var stringval = vals[r+1];
+               if(stringval == null){
+                return;
+               }
+               if(stringval.match("\"") && number == 2){
+              //Do Nothing
+               }
+               else{
+              putOutput("Type Error: " +s+ " needs to be a String");
+              return;
+
+               }
+
+
+              }   
+         }
+       }
+     }
+   }
+
+
+
+
+    function checkbool(){
+   for (var q = 0; q < scopevals.length; q++) {
+         vals = scopevals[q]
+        for (var r = 0; r < vals.length; r++) {
+          var oneval = vals[r];
+          if(oneval.match(chars)){
+           var error = staticarray[q];
+             if(q == 0 && isInArray(oneval, error) == false){
+               putOutput("Decleration Error: " +oneval+ " has not been declared");
+               return;
+
+               }
+              if(q > 0 && isInArray(oneval, error) == false){
+                error = staticarray[q-1];
+                 if(isInArray(oneval, error) == false){
+                  putOutput("Decleration Error: " +oneval+ " has not been declared in the correct scope");
+                  return;
+                }
+
+
+               }
+              if(oneval == b){
+               putMessage("Variable " +b+ " has been declared");
+               var booleanval = vals[r+1];
+               if(booleanval == null){
+                return;
+               }
+               if(booleanval.match(boolval) && number == 3){
+
+              //Do Nothing
+               }
+               else if(booleanval == ")" && number == 3){
+
+              //Do Nothing
+               }
+               else{
+              putOutput("Type Error: " +b+ " needs to be a boolean");
+
+               }
+
+
+              }   
+         }
+       }
+     }
+   }
     
 
 function getlastindex(){ //Gets lastindex of something in the tokenstream.
@@ -841,7 +1298,10 @@ function lookahead() {
            return targetToken;//Returns the token's value.
         
     }
-        
+       
+function isInArray(value, array) {
+  return array.indexOf(value) > -1;
+} 
         
         
     
