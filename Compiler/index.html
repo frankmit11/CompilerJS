@@ -57,7 +57,7 @@ O ::== + | -
     // (http://developer.yahoo.com/performance/rules.html#js_bottom) -->
     <script type="text/javascript" src="scripts/CST.js"></script>
     <script type="text/javascript" src="scripts/utils.js"></script>	
-    <script type="text/javascript" src="scripts/lexer-parse.js"></script>	
+    <script type="text/javascript" src="scripts/lexer-parse-type-scope.js"></script>	
     <script type="text/javascript">
     // Global variables
     var tokens = "";
@@ -71,7 +71,7 @@ O ::== + | -
         // Clear the message box.
         document.getElementById("taOutput").value = "";
         document.getElementById("ASToutput").value = "The program number displayed is not a branch in the AST, its purpose is to distinguish between multiple programs.";
-        document.getElementById("SYTABLEoutput").value = "Warning: Symbol Table/Type and Scope Checking Will Not Function Properly With Multiple Programs";
+        document.getElementById("SYTABLEoutput").value = "Warning: Symbol Table/Type and Scope Checking Will Not Function Properly With Multiple Programs :( ";
         // Set the initial values for our globals.
         tokens = "";
         tokenIndex = 0;
