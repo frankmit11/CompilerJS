@@ -1092,51 +1092,66 @@ for (var g = 0; g < values.length; g++) {
 
 
 function checkintset(){
+var gotmatch = 0;
 for (var t = 0; t < scopevals.length; t++) {
   check = scopevals[t];
-if(isInArray(i,check) != true){
-   check = scopevals[t+1];
-   if(check == null || isInArray(i,check) != true){
-
-   putOutput("Error: The value " +i+ " is not used and values must be declared");
-   return;
+  for (var g = 0; g < check.length; g++){
+    var decl = check[g];
+    if(decl.match(chars)){
+       if(i == decl){
+         gotmatch = 1;
+        }
+      }
+     }
    }
+   if(gotmatch != 1){
 
+putOutput("Error: The value " +i+ " is not used and values must be declared");
+   return;
 
-         }
-         
-
-    }
+   }
 }
+        
 
 function checkstringset(){
-for (var u = 0; u < scopevals.length; u++) {
-  check2 = scopevals[u];
-if(isInArray(s,check2) != true){
-   check2 = scopevals[u+1];
-   if(check2 == null || isInArray(s,check2) != true){
-
-   putOutput("Error: The value " +s+ " is not used and other values must be declared");
-   return;
+var gotmatch = 0;
+for (var t = 0; t < scopevals.length; t++) {
+  check = scopevals[t];
+  for (var g = 0; g < check.length; g++){
+    var decl = check[g];
+    if(decl.match(chars)){
+       if(s == decl){
+         gotmatch = 1;
+        }
+      }
+     }
    }
+   if(gotmatch != 1){
 
+putOutput("Error: The value " +s+ " is not used and values must be declared");
+   return;
 
-         }
    }
 }
 
 function checkboolset(){
-for (var w = 0; w < scopevals.length; w++) {
-  check3 = scopevals[w];
-if(check3 == null || isInArray(b,check3) != true){
-  check3 = scopevals[w+1];
- if(isInArray(b,check3) != true){
-
-   putOutput("Error: The value " +b+ " is not used and other values must be declared");
-   return;
+var gotmatch = 0;
+for (var t = 0; t < scopevals.length; t++) {
+  check = scopevals[t];
+  for (var g = 0; g < check.length; g++){
+    var decl = check[g];
+    if(decl.match(chars)){
+       if(b == decl){
+         gotmatch = 1;
+        }
+      }
+     }
    }
+   if(gotmatch != 1){
 
-       }
+putOutput("Error: The value " +b+ " is not used and values must be declared");
+   return;
+
    }
 }
 
