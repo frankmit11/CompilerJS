@@ -1017,8 +1017,10 @@ for (var q = 0; q < scopevals.length; q++) {
     
 
     function type(){
+      //tableadd(scopevals);
       staticarray.unshift(symbarray);
       staticarray.splice(-1,1);
+      //tableadd(staticarray);
       tableadd("  Symbol Table");
       tableadd("-----------------");
       for (a = 0; a < staticarray.length; a++) {
@@ -1032,15 +1034,14 @@ for (var q = 0; q < scopevals.length; q++) {
 
          }
          else if(a > 0 && values.length == 0 ){
-         scopechange = staticarray[a-1];
+          scopechange = staticarray[a-1];
          if(scopechange.length == 0){
 
-          putOutput("Error: Variables in Scope " +a+ " are undeclared");
-          return;
-
+          //putOutput("Error: Variables in Scope " +a+ " are undeclared");
+         //return;
          }
 
-         }
+        }
          for (var j = 0; j < values.length; j++) {
           types = values[j];
           tableadd(values[j]);
@@ -1153,15 +1154,6 @@ if(check3 == null || isInArray(b,check3) != true){
                return;
 
                }
-              if(q > 0 && isInArray(oneval, error) == false){
-                error = staticarray[q-1];
-                 if(isInArray(oneval, error) == false){
-                  putOutput("Decleration Error: " +oneval+ " has not been declared in the correct scope");
-                  return;
-                }
-
-
-               }
               if(oneval == i){
                putMessage("Variable " +i+ " has been declared");
                var intval = vals[r+1];
@@ -1200,15 +1192,6 @@ if(check3 == null || isInArray(b,check3) != true){
                return;
 
                }
-              if(q > 0 && isInArray(oneval, error) == false){
-                error = staticarray[q-1];
-                 if(isInArray(oneval, error) == false){
-                  putOutput("Decleration Error: " +oneval+ " has not been declared in the correct scope");
-                  return;
-                }
-
-
-               }
               if(oneval == s){
                putMessage("Variable " +s+ " has been declared");
                var stringval = vals[r+1];
@@ -1244,15 +1227,6 @@ if(check3 == null || isInArray(b,check3) != true){
              if(q == 0 && isInArray(oneval, error) == false){
                putOutput("Decleration Error: " +oneval+ " has not been declared");
                return;
-
-               }
-              if(q > 0 && isInArray(oneval, error) == false){
-                error = staticarray[q-1];
-                 if(isInArray(oneval, error) == false){
-                  putOutput("Decleration Error: " +oneval+ " has not been declared in the correct scope");
-                  return;
-                }
-
 
                }
               if(oneval == b){
