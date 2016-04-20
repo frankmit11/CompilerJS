@@ -361,7 +361,7 @@
         parseSL(); //Runs Parse Statement List. 
         //tableadd(scope.symbols);
         //staticarray.push(scope.symbols);
-        scopevals.push(scopeval.symbols);
+        //scopevals.push(scopeval.symbols);
         if(currentToken.match(fail))
         {
         return;
@@ -471,11 +471,11 @@ if (scope.level == 0){
          }
         if (scope.level > 0){
         scopeval.symbols.push(currentToken);
-         }
+  }
 currentToken = getNextToken();
 parseAS(); //Parse Assignment Statement function.
-//typeCheck();
-//putOutput(array[0]);
+scopevals[increase - 1] = scopeval.symbols;
+//scopevals.push(scopeval.symbols);
 ast.endChildren();
 parseS();
 }
@@ -1018,6 +1018,7 @@ var s = 0;
 var b = 0;
 var fail = 0;
     function type(){
+      scopevals.unshift(valarray);
       //tableadd(scopevals);
       typearray = staticarray.removeDuplicates();
       typearray.unshift(symbarray);
@@ -1138,6 +1139,9 @@ function checkintset(){
 var gotmatch = 0;
 for (var t = 0; t < scopevals.length; t++) {
   check = scopevals[t];
+  if(check === undefined){
+     continue;
+  }
   for (var g = 0; g < check.length; g++){
     var decl = check[g];
     if(decl.match(chars)){
@@ -1149,7 +1153,7 @@ for (var t = 0; t < scopevals.length; t++) {
    }
    if(gotmatch != 1){
 
-putOutput("Error: The value " +i+ " is not used and values must be declared");
+putOutput("Warning: The value " +i+ " is not used and values must be declared");
    return;
 
    }
@@ -1160,6 +1164,9 @@ function checkstringset(){
 var gotmatch = 0;
 for (var t = 0; t < scopevals.length; t++) {
   check = scopevals[t];
+  if(check === undefined){
+     continue;
+  }
   for (var g = 0; g < check.length; g++){
     var decl = check[g];
     if(decl.match(chars)){
@@ -1171,7 +1178,7 @@ for (var t = 0; t < scopevals.length; t++) {
    }
    if(gotmatch != 1){
 
-putOutput("Error: The value " +s+ " is not used and values must be declared");
+putOutput("Warning: The value " +s+ " is not used and values must be declared");
    return;
 
    }
@@ -1181,6 +1188,9 @@ function checkboolset(){
 var gotmatch = 0;
 for (var t = 0; t < scopevals.length; t++) {
   check = scopevals[t];
+  if(check === undefined){
+     continue;
+  }
   for (var g = 0; g < check.length; g++){
     var decl = check[g];
     if(decl.match(chars)){
@@ -1192,7 +1202,7 @@ for (var t = 0; t < scopevals.length; t++) {
    }
    if(gotmatch != 1){
 
-putOutput("Error: The value " +b+ " is not used and values must be declared");
+putOutput("Warning: The value " +b+ " is not used and values must be declared");
    return;
 
    }
@@ -1203,15 +1213,13 @@ putOutput("Error: The value " +b+ " is not used and values must be declared");
     function checkint(){
    for (var q = 0; q < scopevals.length; q++) {
          vals = scopevals[q];
+         if(vals == undefined){
+          continue;
+         }
         for (var r = 0; r < vals.length; r++) {
           var oneval = vals[r];
           if(oneval.match(chars)){
             var error = staticarray[q];
-            if(q == 0 && isInArray(oneval, error) == false){
-               putOutput("Decleration Error: " +oneval+ " has not been declared");
-               return;
-
-               }
               if(oneval == i){
                putMessage("Variable " +i+ " has been declared");
                var intval = vals[r+1];
@@ -1241,15 +1249,13 @@ putOutput("Error: The value " +b+ " is not used and values must be declared");
    function checkstring(){
    for (var q = 0; q < scopevals.length; q++) {
          vals = scopevals[q]
+         if(vals == undefined){
+          continue;
+         }
         for (var r = 0; r < vals.length; r++) {
           var oneval = vals[r];
           if(oneval.match(chars)){
             var error = staticarray[q];
-            if(q == 0 && isInArray(oneval, error) == false){
-               putOutput("Decleration Error: " +oneval+ " has not been declared");
-               return;
-
-               }
               if(oneval == s){
                putMessage("Variable " +s+ " has been declared");
                var stringval = vals[r+1];
@@ -1278,15 +1284,13 @@ putOutput("Error: The value " +b+ " is not used and values must be declared");
     function checkbool(){
    for (var q = 0; q < scopevals.length; q++) {
          vals = scopevals[q]
+         if(vals == undefined){
+          continue;
+         }
         for (var r = 0; r < vals.length; r++) {
           var oneval = vals[r];
           if(oneval.match(chars)){
            var error = staticarray[q];
-             if(q == 0 && isInArray(oneval, error) == false){
-               putOutput("Decleration Error: " +oneval+ " has not been declared");
-               return;
-
-               }
               if(oneval == b){
                putMessage("Variable " +b+ " has been declared");
                var booleanval = vals[r+1];
