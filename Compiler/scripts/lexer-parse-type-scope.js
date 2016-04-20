@@ -311,7 +311,6 @@
             //tableadd(complete);
             //tableadd(table);
             //tableadd(valarray);
-            //tableadd(scopevals);
             //tableadd(boolcheck);
             objarray = [];
             putMessage("EOF reached");
@@ -361,7 +360,7 @@
         }
         parseSL(); //Runs Parse Statement List. 
         //tableadd(scope.symbols);
-        staticarray.push(scope.symbols);
+        //staticarray.push(scope.symbols);
         scopevals.push(scopeval.symbols);
         if(currentToken.match(fail))
         {
@@ -554,6 +553,7 @@ if (currentToken.match(chars)){ //Looks for identifer after type match.
          }
         if (scope.level > 0){
         scope.symbols.push(currentToken);
+        staticarray.push(scope.symbols);
         //tableadd(currentToken);
          }
     cst.addNode("Char", "branch");
@@ -561,7 +561,7 @@ if (currentToken.match(chars)){ //Looks for identifer after type match.
     cst.addNode(currentToken, "leaf");
     ast.addNode(currentToken, "leaf");
     currentToken = getNextToken();
-    //parseS();
+    parseS();
     }
  /*If no identifer is found as next token in the stream error is thrown. 
  Note if entered:
@@ -589,7 +589,6 @@ if (currentToken.match(/int|string|boolean/)){ //Checks if token matchs one of t
          if (scope.level > 0){
 
         scope.symbols.push(currentToken);
-        //staticarray.push(scope.symbols);
         //tableadd(currentToken);
         //tableadd(staticarray);
          }
@@ -1014,27 +1013,29 @@ for (var q = 0; q < scopevals.length; q++) {
      }
    }
 }
-    
-
+var i = 0;
+var s = 0;
+var b = 0;
+var fail = 0;
     function type(){
       //tableadd(scopevals);
-      staticarray.unshift(symbarray);
-      staticarray.splice(-1,1);
-      //tableadd(staticarray);
+      typearray = staticarray.removeDuplicates();
+      typearray.unshift(symbarray);
+      //tableadd(typearray);
       tableadd("  Symbol Table");
       tableadd("-----------------");
-      for (a = 0; a < staticarray.length; a++) {
+      for (a = 0; a < typearray.length; a++) {
          tableadd("Scope "+ a);
          tableadd("----------");
-         values = staticarray[a];
-         if(staticarray.length == 1 && values.length == 0){
+         values = typearray[a];
+         if(typearray.length == 1 && values.length == 0){
 
           putOutput("Error: Must Declare Variables");
          
 
          }
          else if(a > 0 && values.length == 0 ){
-          scopechange = staticarray[a-1];
+          scopechange = typearray[a-1];
          if(scopechange.length == 0){
 
           //putOutput("Error: Variables in Scope " +a+ " are undeclared");
@@ -1047,21 +1048,33 @@ for (var q = 0; q < scopevals.length; q++) {
           tableadd(values[j]);
           if(types.match(/int/)){
              i = values[j+1];
-             checkmulitple();
+             checkmulitpleint();
+             if (fail == 1){
+
+              return;
+             }
              checkintset(); 
              number =  1;
              checkint();
            }
            else if(types.match(/string/)){
              s = values[j+1]; 
-             checkmulitple();
+             checkmulitplestring();
+             if (fail == 1){
+
+              return;
+             }
              checkstringset();
              number =  2;
              checkstring();
            }
            else if(types.match(/boolean/)){
              b = values[j+1];
-             checkmulitple(); 
+             checkmulitplebool();
+             if (fail == 1){
+
+              return;
+             } 
              checkboolset();
              number =  3;
              checkbool();
@@ -1073,20 +1086,50 @@ for (var q = 0; q < scopevals.length; q++) {
 
 }
 
-function checkmulitple(){
+function checkmulitpleint(){
   var count = 0;
-for (var g = 0; g < values.length; g++) {
-    var match = values[g];
-    if(match == i){
+  for (var l = 0; l < values.length; l++) {
+    var value = values[l];
+    if(value == i){
       count++;
      }
-
-     }
+    }
      if(count > 1){
-      putOutput("Error: Variable " +match+ " has been declared more than once");
+      fail = 1;
+      putOutput("Error: Variable " +i+ " has been declared more than once");
       return;
    } 
-}
+  }
+
+  function checkmulitplestring(){
+  var count = 0;
+  for (var l = 0; l < values.length; l++) {
+    var value = values[l];
+    if(value == s){
+      count++;
+     }
+    }
+     if(count > 1){
+      fail = 1;
+      putOutput("Error: Variable " +s+ " has been declared more than once");
+      return;
+   } 
+  }
+
+  function checkmulitplebool(){
+  var count = 0;
+  for (var l = 0; l < values.length; l++) {
+    var value = values[l];
+    if(value == b){
+      count++;
+     }
+    }
+     if(count > 1){
+      fail = 1;
+      putOutput("Error: Variable " +b+ " has been declared more than once");
+      return;
+   } 
+  }
 
 
 
@@ -1291,6 +1334,26 @@ function lookahead() {
 function isInArray(value, array) {
   return array.indexOf(value) > -1;
 } 
+
+ Array.prototype.removeDuplicates = function (){
+  var temp=new Array();
+  this.sort();
+  for(i=0;i<this.length;i++){
+    if(this[i]==this[i+1]) {continue}
+    temp[temp.length]=this[i];
+  }
+  return temp;
+} 
+
+ Array.prototype.checkIfArrayIsUnique = function() {
+    this.sort();    
+    for ( var i = 1; i < this.length; i++ ){
+        if(this[i-1] == this[i])
+            return false;
+    }
+    return true;
+    }
+
         
         
     
