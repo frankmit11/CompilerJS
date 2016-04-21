@@ -1029,6 +1029,7 @@ var fail = 0;
          tableadd("Scope "+ a);
          tableadd("----------");
          values = typearray[a];
+         //checkdecl();
          if(typearray.length == 1 && values.length == 0){
 
           putOutput("Error: Must Declare Variables");
@@ -1086,6 +1087,46 @@ var fail = 0;
     }
 
 }
+
+function checkdecl(){
+var declared = [];
+var arrayvals = [];
+for (var w = 0; w < typearray.length; w++) {
+  var declvals = typearray[w];
+  if(declvals === undefined){
+     continue;
+  }
+  for (var r = 0; r < declvals.length; r++) {
+    var values = declvals[r];
+    if(values.match(chars)){
+      declared.push(values);
+
+            }
+    
+    }
+
+  }
+
+  for (var j = 0; j < scopevals.length; j++) {
+  var declvals = scopevals[j];
+  if(declvals === undefined){
+     continue;
+  }
+  for (var f = 0; f < declvals.length; f++) {
+    var values = declvals[f];
+    if(values.match(chars)){
+      arrayvals.push(values);
+
+            }
+    
+    }
+
+  }
+  diffArray(arrayvals, declared);
+
+}
+
+
 
 function checkmulitpleint(){
   var count = 0;
@@ -1358,10 +1399,21 @@ function isInArray(value, array) {
     return true;
     }
 
-        
-        
-    
-        
+function diffArray(a, b) {
+  var seen = [], diff = [];
+  for ( var i = 0; i < b.length; i++)
+      seen[b[i]] = true;
+  for ( var i = 0; i < a.length; i++)
+      if (!seen[a[i]])
+          diff.push(a[i]);
+  if(diff.length > 0){
+
+    putOutput("Decleration Error: The Value(s) " +diff+ " have not been declared");
+  }
+}
+
+ 
+ 
        
         
     
