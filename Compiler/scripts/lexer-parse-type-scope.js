@@ -307,6 +307,7 @@
             cst.endChildren();
             ast.endChildren();
             t = true;
+            //tableadd(currentToken);
             //var complete = table.join("\n----------------\n");
             //tableadd(complete);
             //tableadd(table);
@@ -952,6 +953,7 @@ cst.endChildren();
         
     }
 
+
 function typecheckboolean(){
 testequal = [];
 for (var e = 0; e < boolcheck.length; e++) {
@@ -994,29 +996,13 @@ return;
   }
 }
 
-function fixarray(){
-scopevals.unshift(valarray);
-scopevals.splice(-1,1);
-for (var q = 0; q < scopevals.length; q++) {
-         pos = scopevals[q]
-        for (var r = 0; r < pos.length; r++) {
-          var oneval = pos[r];
-          if(pos[0] == ")"){ 
-          //Do nothing             
-       }
-       else if(oneval == ")" ){
-        pos.splice(r - 1, 1);
-        pos.splice(r - 2, 1);
 
-
-       }
-     }
-   }
-}
 var i = 0;
 var s = 0;
 var b = 0;
+var letter = 0;
 var fail = 0;
+    
     function type(){
       scopevals.unshift(valarray);
       //tableadd(scopevals);
@@ -1029,22 +1015,12 @@ var fail = 0;
          tableadd("Scope "+ a);
          tableadd("----------");
          values = typearray[a];
-         //checkdecl();
          if(typearray.length == 1 && values.length == 0){
 
           putOutput("Error: Must Declare Variables");
          
 
          }
-         else if(a > 0 && values.length == 0 ){
-          scopechange = typearray[a-1];
-         if(scopechange.length == 0){
-
-          //putOutput("Error: Variables in Scope " +a+ " are undeclared");
-         //return;
-         }
-
-        }
          for (var j = 0; j < values.length; j++) {
           types = values[j];
           tableadd(values[j]);
@@ -1138,7 +1114,7 @@ function checkmulitpleint(){
     }
      if(count > 1){
       fail = 1;
-      putOutput("Error: Variable " +i+ " has been declared more than once");
+      putOutput("Error: Variable " +i+ " has been declared more than once in the same scope");
       return;
    } 
   }
@@ -1153,7 +1129,7 @@ function checkmulitpleint(){
     }
      if(count > 1){
       fail = 1;
-      putOutput("Error: Variable " +s+ " has been declared more than once");
+      putOutput("Error: Variable " +s+ " has been declared more than once in the same scope");
       return;
    } 
   }
@@ -1168,7 +1144,7 @@ function checkmulitpleint(){
     }
      if(count > 1){
       fail = 1;
-      putOutput("Error: Variable " +b+ " has been declared more than once");
+      putOutput("Error: Variable " +b+ " has been declared more than once in the same");
       return;
    } 
   }
@@ -1271,8 +1247,12 @@ putOutput("Warning: The value " +b+ " is not used and values must be declared");
 
               //Do Nothing
                }
+               else if(intval.match(chars)){
+               letter = intval;
+               checkchartype();
+               }
                else{
-              putOutput("Type Error: " +i+ " needs to be given valid Integer Value");
+              putOutput("Type Error: " +i+ " is of type Integer");
               return;
 
                }
@@ -1285,6 +1265,23 @@ putOutput("Warning: The value " +b+ " is not used and values must be declared");
      }
    }
 
+
+function checkchartype(){
+for (var k= 0; k < typearray.length; k++) {
+    var declval = typearray[k];
+    for (var p= 0; p < declval.length; p++) {
+        var id = declval[p];
+        if(id.match(chars)){
+             if(letter == id){
+               var type = declval[p-1];
+               if(!type.match(/int/)){
+               putOutput("Type Error: " +id+ " needs to be an Integer");
+                }
+              }
+           }
+        }
+     }
+  }
 
 
    function checkstring(){
@@ -1307,7 +1304,7 @@ putOutput("Warning: The value " +b+ " is not used and values must be declared");
               //Do Nothing
                }
                else{
-              putOutput("Type Error: " +s+ " needs to be a String");
+              putOutput("Type Error: " +s+ " is of type String");
               return;
 
                }
@@ -1347,7 +1344,7 @@ putOutput("Warning: The value " +b+ " is not used and values must be declared");
               //Do Nothing
                }
                else{
-              putOutput("Type Error: " +b+ " needs to be a boolean");
+              putOutput("Type Error: " +b+ " is of type Boolean");
 
                }
 
