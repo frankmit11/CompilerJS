@@ -71,7 +71,7 @@ O ::== + | -
         // Clear the message box.
         document.getElementById("taOutput").value = "";
         document.getElementById("ASToutput").value = "The program number displayed is not a branch in the AST, its purpose is to distinguish between multiple programs.";
-        document.getElementById("SYTABLEoutput").value = "Warning: Symbol Table/Type and Scope Checking Will Not Function Properly With Multiple Programs :( ";
+       // document.getElementById("SYTABLEoutput").value = "Warning: Symbol Table/Type and Scope Checking Will Not Function Properly With Multiple Programs :( ";
         // Set the initial values for our globals.
         tokens = "";
         tokenIndex = 0;
@@ -96,16 +96,11 @@ O ::== + | -
         if (t == true){
         document.getElementById("CSToutput").value = cst.toString();
         document.getElementById("ASToutput").value = ast.toString();
-        document.getElementById("SYTABLEoutput").value = "";
+        //document.getElementById("SYTABLEoutput").value = "";
         //tableadd(valarray);
         //tableadd(scopevals);
         //tableadd(symbarray);
         //tableadd(staticarray.removeDuplicates());
-        if(haveabool == 1){
-        typecheckboolean();
-         }
-        type();
-        checkdecl();
     }
     }
     

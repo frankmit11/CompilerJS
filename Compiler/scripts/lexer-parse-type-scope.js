@@ -182,19 +182,20 @@
     }
 
 
-//Declares Variables to be used when Parsing.
-  var concretetree = new Tree();
-  var scopevals = [];
-  var staticarray = [];
-  var valarray = [];
-  var abstract = new Tree();
-  var word = [];
+//Declares Variables to be used when Parsing and Semantic Analysis.
+  var concretetree = new Tree(); //Creates Tree used for CST.
+  var scopevals = []; //Array used to hold values in scopes > 1.
+  var staticarray = []; //Array used to hold declared types in scopes > 1. 
+  var valarray = []; //Array used to hold values in scope 1.
+  var symbarray = []; //Array used to hold declared types in scope 1. 
+  var abstract = new Tree(); //Creates Tree used for AST.
+  var word = []; //Creates array used to join strings together for the AST.
   var prevscope = [];
   var trees = [];
   var array = [];
   var i = 0;
   trees.push(concretetree);
-  haveabool = 0;
+  var haveabool = 0; //Flag that looks for a boolean.
   var atrees = [abstract];
   var programcounter = 1;
   var lastindex = 0
@@ -204,21 +205,20 @@
   var lineindex  = -1; //Set to -1 in order to get linenum. Further explained in getNextToken function. 
   var increase = 0;
   var objarray = [];
-  var symbarray = [];
   var boolcheck = [];
   var print = 0;
 
 
-   function programscope(counter){
+   function programscope(counter){ //Establishes a new Array and counts scope level.
    this.level = counter;
    this.symbols = []; 
   } 
    
-   function createScope(num){
+   function createScope(num){ //Creates new scope array.
    scope = new programscope(num);
    }
 
-   function createScopeVal(num){
+   function createScopeVal(num){ //Creates new scope values array.
    scopeval = new programscope(num);
    }
     
@@ -307,23 +307,31 @@
             cst.endChildren();
             ast.endChildren();
             t = true;
-            //tableadd(currentToken);
-            //var complete = table.join("\n----------------\n");
-            //tableadd(complete);
-            //tableadd(table);
-            //tableadd(valarray);
-            //tableadd(boolcheck);
+          if(haveabool == 1){
+           typecheckboolean();
+            }
+            type();
+            checkdecl();
+            //The following declarations are reinitialized for multiple programs. 
+            scopevals = [];
+            staticarray = [];
+            valarray = [];
+            symbarray = [];
             objarray = [];
+            increase = 0;
+            haveabool = 0;
             putMessage("EOF reached");
             putOutput("Parse Completed No Errors on Program " +programcounter);
              
              if(tokenindex + 3 < tokenstream.length){ //Once EOF is reached checks for more programs.
-
                        programcounter++;
                        table = new Array();
                        cst.addNode("Building New CST...", "leaf");
                        ast.addNode("Building New AST...", "leaf");
                        parse(); //Recalls parse if another program is found.
+
+
+
 
                        //stopsrepeatedOutPutMessage++; //Stops Ouput below from repeating.     
              }
@@ -348,9 +356,9 @@
             createScopeVal(increase);
             x = scope.level; 
             objarray.push(x);
-            cst.addNode("Block", "branch");
-            ast.addNode("Block", "branch");
-            cst.addNode("{", "leaf");
+            cst.addNode("Block", "branch");//Adds a branch node to the CST with the following parameters and can be seen throughout parse.
+            ast.addNode("Block", "branch");//Adds a branch node to the AST very similar to CST code on the previous line.
+            cst.addNode("{", "leaf");// Adds a leaf node to the CST and can be seen numerous times throughout parse with different parameters.
             putMessage("Got an OpenBrace");
             obracecounter++;//Counts Open Brace for every match.
             currentToken = getNextToken(); //Gets next token. 
@@ -360,16 +368,13 @@
            //Do nothing.
         }
         parseSL(); //Runs Parse Statement List. 
-        //tableadd(scope.symbols);
-        //staticarray.push(scope.symbols);
-        //scopevals.push(scopeval.symbols);
         if(currentToken.match(fail))
         {
         return;
         }
         putMessage("Expecting a CloseBrace");
         if(currentToken.match(closebrace)){ //Checks if token has reached a closed brace.
-              ast.endChildren();
+              ast.endChildren();//Allows for program to traverse back up the AST.
               cst.addNode("}", "leaf");
               cbracecounter++;//Counts CloseBrace for ever match.
               putMessage("Got CloseBrace");
@@ -378,12 +383,10 @@
               if(checkforscope.match(keywords) || checkforscope.match(chars)){
                 objarray.push(0);
                 createScope(0);
-                //xtableadd("Scope "+ scope.level);
               }
-              //table = new Array();
               currentToken = getNextToken();//Gets next token.
          }
-         cst.endChildren();
+         cst.endChildren(); //Allows for program to traverse back up the CST.
         
      }
  
@@ -465,24 +468,22 @@ putMessage("Got Begining of an Assignment Statement  " + currentToken);
 cst.addNode("Identifer", "branch"); 
 cst.addNode("Char", "branch"); 
 cst.addNode(currentToken, "leaf");
-ast.addNode(currentToken, "leaf");
-if (scope.level == 0){
+ast.addNode(currentToken, "leaf"); //Adds leaf node to AST with given parameters.
+if (scope.level == 0){ //Checks if scope is zero.
 
-        valarray.push(currentToken);
+        valarray.push(currentToken); //Pushes values into an array to be tested later.
          }
-        if (scope.level > 0){
-        scopeval.symbols.push(currentToken);
+        if (scope.level > 0){ //Checks if scope is > 0.
+        scopeval.symbols.push(currentToken); //Pushes values into an array to be tested later.
   }
 currentToken = getNextToken();
 parseAS(); //Parse Assignment Statement function.
-scopevals[increase - 1] = scopeval.symbols;
-//scopevals.push(scopeval.symbols);
+scopevals[increase - 1] = scopeval.symbols; //Pushes values in scope > 0 and puts them into another array.
 ast.endChildren();
 parseS();
 }
 else if(currentToken.match(openbrace))
 {
-//prevscope.push(table);
 increase++;
 parseB(); //If an Open Brace is found Block Statment is called.
 }
@@ -514,9 +515,9 @@ else if(currentToken.match(openparen)){
     cst.addNode("(", "leaf");
     putMessage("Got OpenParen " + currentToken); //Checks if next token after print is OpenParen.
     currentToken = getNextToken();
-    print = 1;
+    print = 1; //Flag set to not add print values into value array.
     parseExP(); //If so calls ParseExpression because an expression is expected next.
-    print = 0;
+    print = 0; //Resets flag to zero.
     if(currentToken.match(fail)){
         return;
     }
@@ -550,12 +551,11 @@ if (currentToken.match(chars)){ //Looks for identifer after type match.
     currentline = getlineNum();
     if (scope.level == 0){
 
-        symbarray.push(currentToken);
+        symbarray.push(currentToken); //Pushes declared types at scope 0 to an array.
          }
         if (scope.level > 0){
         scope.symbols.push(currentToken);
-        staticarray.push(scope.symbols);
-        //tableadd(currentToken);
+        staticarray.push(scope.symbols); //Pushes declared types with scope > 0 to an array.
          }
     cst.addNode("Char", "branch");
     putMessage("Got Identifer " + currentToken)
@@ -590,8 +590,7 @@ if (currentToken.match(/int|string|boolean/)){ //Checks if token matchs one of t
          if (scope.level > 0){
 
         scope.symbols.push(currentToken);
-        //tableadd(currentToken);
-        //tableadd(staticarray);
+        
          }
     cst.addNode(currentToken, "leaf");
     ast.addNode(currentToken, "leaf");
@@ -781,7 +780,7 @@ else{
 }
 else if(currentToken.match(openparen)){ //Looks to match an OpenParen which starts off a boolean expression.
     cst.addNode("BooleanExpr", "branch");
-    haveabool = 1;
+    haveabool = 1; //Sets bool flag true.
     putMessage("Got OpenParen " + currentToken);
     cst.addNode("(", "leaf");
     boolcheck.push(currentToken);
@@ -803,13 +802,15 @@ if(currentToken.match(closeparen)){//Looks for CloseParen in order to satisy the
          }
         if (scope.level > 0){
         scopeval.symbols.push(currentToken);
-        var b = valarray.indexOf(currentToken);
-        valarray.splice(b - 1, 1);
+        var b = valarray.indexOf(currentToken); //Gets index of current token 
+        //Removes last two values in array.
+        valarray.splice(b - 1, 1); 
         valarray.splice(b - 2, 1);
          }
   cst.addNode(")", "leaf");
   ast.endChildren();
   currentToken = getNextToken();
+  //haveabool = 0;
 }
 //If close paren is missing throws as error. 
 else{
@@ -880,7 +881,7 @@ cst.endChildren();
 
 function parseCharL(){//Parse Character List function.
 if (currentToken.match(chars)){//Checks if currentToken matchs a character.
-    word.push(currentToken);
+    word.push(currentToken); //Pushes all chars into the word array to be displayed in the AST.
     cst.addNode("CharList", "branch");
     putMessage("Expecting a Character");
     cst.addNode("Char", "branch");
@@ -953,20 +954,26 @@ cst.endChildren();
         
     }
 
-
+//Checks to be sure both sides of the boolean expression are of equal type.
 function typecheckboolean(){
 testequal = [];
-for (var e = 0; e < boolcheck.length; e++) {
+for (var e = 0; e < boolcheck.length; e++) { //Loops through array of bool values.
      var types = boolcheck[e];
      if (types == "("){
-   firstval = boolcheck[e+1]
+    //Gets each value compared in the boolexp.
+   firstval = boolcheck[e+1] 
    secondval = boolcheck[e+2]
    testequal.push(firstval);
    testequal.push(secondval);
      }
   var val1 = testequal[0];
   var val2 = testequal[1];
-if(val1.match(digits) && val2.match(digits)){
+//If a value is undefiend continue to not break the program.
+if(val1 == undefined || val2 == undefined){
+
+continue;
+}
+else if(val1.match(digits) && val2.match(digits)){
 //Do nothing
 
 }
@@ -975,16 +982,23 @@ else if(val1 == "\"" && val2 == "\""){
 
 }
 else if (val1.match(boolval) && val2.match(boolval)){
-
 // Do nothing
 }
 else if(val1 == "(" && val2 == "("){
 //Do nothing
 
 }
-else if (val1.match(chars) && val2.match(chars)){
-
-// Do nothing
+else if (val1.match(chars) && val2.match(digits)){
+//Do nothing
+}
+else if (val1.match(chars) && val2.match("\"")){
+//Do nothing
+}
+else if (val1.match(chars) && val2.match(boolval)){
+//Do nothing
+}
+else if (val1.match(chars) && val2.match("(")){
+//Do nothing
 }
 else{
 
@@ -996,17 +1010,18 @@ return;
   }
 }
 
-
+//Meaningless declarations to serve as loop counters and flags.
 var i = 0;
 var s = 0;
 var b = 0;
 var letter = 0;
 var fail = 0;
     
+    //Checks string, int, and boolean types.
     function type(){
-      scopevals.unshift(valarray);
+      scopevals.unshift(valarray); //Puts all values in scope 1 at the begining of the array.
       //tableadd(scopevals);
-      typearray = staticarray.removeDuplicates();
+      typearray = staticarray.removeDuplicates(); //Removes duplicates.
       typearray.unshift(symbarray);
       //tableadd(typearray);
       tableadd("  Symbol Table");
@@ -1064,6 +1079,7 @@ var fail = 0;
 
 }
 
+//Checks if variables used have been declared.
 function checkdecl(){
 var declared = [];
 var arrayvals = [];
@@ -1098,12 +1114,17 @@ for (var w = 0; w < typearray.length; w++) {
     }
 
   }
+  //Takes the differnece of both arrays.
   diffArray(arrayvals, declared);
 
 }
 
 
 
+/*The following three functions check if multiple values have been declared in the same scope. 
+In each function a for loop runs to go through the declared values, then if statements execute 
+checking to see if these values appear more than once in the same scope.
+*/
 function checkmulitpleint(){
   var count = 0;
   for (var l = 0; l < values.length; l++) {
@@ -1150,7 +1171,10 @@ function checkmulitpleint(){
   }
 
 
-
+/*The following three functions check if a variable of type int, string, and boolean have been declared, if 
+so a warning is issued. In each function nested for loops run checking to see if the declared variable appears
+later in the program.
+*/
 
 function checkintset(){
 var gotmatch = 0;
@@ -1226,7 +1250,11 @@ putOutput("Warning: The value " +b+ " is not used and values must be declared");
 }
 
 
-
+/*Checks if values match the type integer. This process is repetaed two more times to
+check for boolean and string types. A nested for loop runs going through the declared types 
+and values once it has been determined that two values with the same id are used they are
+type checked with a simple if statement.
+*/
     function checkint(){
    for (var q = 0; q < scopevals.length; q++) {
          vals = scopevals[q];
@@ -1283,7 +1311,7 @@ for (var k= 0; k < typearray.length; k++) {
      }
   }
 
-
+//Checks if values matchs the type string.
    function checkstring(){
    for (var q = 0; q < scopevals.length; q++) {
          vals = scopevals[q]
@@ -1318,7 +1346,7 @@ for (var k= 0; k < typearray.length; k++) {
 
 
 
-
+//Checks if values matchs the type boolean.
     function checkbool(){
    for (var q = 0; q < scopevals.length; q++) {
          vals = scopevals[q]
@@ -1396,6 +1424,7 @@ function isInArray(value, array) {
     return true;
     }
 
+//Gets the differnence of two arrays to see of values used have been declared.
 function diffArray(a, b) {
   var seen = [], diff = [];
   for ( var i = 0; i < b.length; i++)
