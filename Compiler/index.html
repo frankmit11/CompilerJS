@@ -42,9 +42,17 @@ O ::== + | -
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         <font color="white">CST</font>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <font color="white">Code Generation</font>
         <br> 
         <textarea id="taOutput" cols="44" rows="20"></textarea> 
         <textarea id="CSToutput" cols="40" rows="20"></textarea>
+        <textarea id="GENoutput" cols="70" rows="20"></textarea>
         <br>
     </div>
     <!-- Footer -->
@@ -96,11 +104,7 @@ O ::== + | -
         if (t == true){
         document.getElementById("CSToutput").value = cst.toString();
         document.getElementById("ASToutput").value = ast.toString();
-        //document.getElementById("SYTABLEoutput").value = "";
-        //tableadd(valarray);
-        //tableadd(scopevals);
-        //tableadd(symbarray);
-        //tableadd(staticarray.removeDuplicates());
+       
     }
     }
     
@@ -111,13 +115,17 @@ O ::== + | -
     }
     }
      
-    //PutOutput will always give feedback depite if verbose mode is checked.
+    //PutOutput will always give feedback even if verbose mode is checked.
     function putOutput(msg) {
         document.getElementById("taOutput").value += msg + "\n" + "\n";
     }
 
     function tableadd(msg) {
         document.getElementById("SYTABLEoutput").value += msg + "\n";
+    }
+
+    function addgen(msg) {
+        document.getElementById("GENoutput").value += msg + "\n";
     }
 
 

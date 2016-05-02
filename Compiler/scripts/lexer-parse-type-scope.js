@@ -306,6 +306,8 @@
             cst.addNode("$", "leaf");
             cst.endChildren();
             ast.endChildren();
+            putMessage("EOF reached");
+            putOutput("Parse Completed No Errors on Program " +programcounter);
             t = true;
           if(haveabool == 1){
            typecheckboolean();
@@ -320,9 +322,10 @@
             objarray = [];
             increase = 0;
             haveabool = 0;
-            putMessage("EOF reached");
-            putOutput("Parse Completed No Errors on Program " +programcounter);
-             
+            codestream = [];
+             if (fail == 0){
+             codeGen(); 
+            } 
              if(tokenindex + 3 < tokenstream.length){ //Once EOF is reached checks for more programs.
                        programcounter++;
                        table = new Array();
@@ -397,8 +400,6 @@
         ast.endChildren();
     }
     else{
-     //Do nothing if statment list is empty.
-     //cst.endChildren();
      cst.endChildren();
      cst.addNode("StatementList", "branch");
      cst.addNode("Epsilon", "leaf");
@@ -1193,8 +1194,8 @@ for (var t = 0; t < scopevals.length; t++) {
      }
    }
    if(gotmatch != 1){
-
-putOutput("Warning: The value " +i+ " is not used and values must be declared");
+   fail =1;
+   putOutput("Warning: The value " +i+ " is not used and values must be declared");
    return;
 
    }
@@ -1218,8 +1219,8 @@ for (var t = 0; t < scopevals.length; t++) {
      }
    }
    if(gotmatch != 1){
-
-putOutput("Warning: The value " +s+ " is not used and values must be declared");
+   fail =1;
+   putOutput("Warning: The value " +s+ " is not used and values must be declared");
    return;
 
    }
@@ -1242,8 +1243,8 @@ for (var t = 0; t < scopevals.length; t++) {
      }
    }
    if(gotmatch != 1){
-
-putOutput("Warning: The value " +b+ " is not used and values must be declared");
+   fail = 1;
+   putOutput("Warning: The value " +b+ " is not used and values must be declared");
    return;
 
    }
@@ -1281,6 +1282,7 @@ type checked with a simple if statement.
                }
                else{
               putOutput("Type Error: " +i+ " is of type Integer");
+              fail = 1;
               return;
 
                }
@@ -1303,6 +1305,7 @@ for (var k= 0; k < typearray.length; k++) {
              if(letter == id){
                var type = declval[p-1];
                if(!type.match(/int/)){
+                fail = 1;
                putOutput("Type Error: " +id+ " needs to be an Integer");
                 }
               }
@@ -1332,6 +1335,7 @@ for (var k= 0; k < typearray.length; k++) {
               //Do Nothing
                }
                else{
+              fail = 1;
               putOutput("Type Error: " +s+ " is of type String");
               return;
 
@@ -1372,6 +1376,7 @@ for (var k= 0; k < typearray.length; k++) {
               //Do Nothing
                }
                else{
+                fail =1;
               putOutput("Type Error: " +b+ " is of type Boolean");
 
                }
@@ -1433,11 +1438,36 @@ function diffArray(a, b) {
       if (!seen[a[i]])
           diff.push(a[i]);
   if(diff.length > 0){
-
+    fail = 1;
     putOutput("Decleration Error: The Value(s) " +diff+ " have not been declared");
   }
 }
 
+
+function getNextBit() { 
+        if (codeindex < tokenstream.length) 
+        {
+            thisBit = tokenstream[codeindex]; 
+            codeindex = codeindex + 3; 
+
+        }
+        return thisBit;
+  }
+
+
+var codestream = []; 
+var codelength = 255;
+var codeindex = 0;
+
+function codeGen() {
+addgen("Generating Code for Program " +programcounter+ "\n");
+for(var index = 0; index <= codelength; index++) {
+    codestream.push("00");
+
+}
+addgen(codestream.join(" ") +"\n");
+
+}
  
  
        
