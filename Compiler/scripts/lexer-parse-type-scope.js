@@ -1468,6 +1468,7 @@ Array.prototype.clean = function(deleteValue) {
 var codestream = []; 
 var statictable = [];
 var hexstring = [];
+var hexindex = [];
 var heap = [];
 var codelength = 255;
 var codeindex = 0;
@@ -1479,16 +1480,15 @@ currentBit = getNextBit();
 getCode();
 genlength = codelength - codestream.length;
 addgen("Generating Code for Program " +programcounter+ "\n");
-for(var index = 0; index < genlength; index++) {
+for(var index = 1; index <= genlength; index++) {
     codestream.push("00");
 
 }
 createHeap();
 genHeap();
 genAddress();
+addStringHex();
 addgen(codestream.join(" ") +"\n");
-//putOutput(heap);
-putOutput(codestream.indexOf(0));
 
 }
 
@@ -1583,12 +1583,35 @@ codestream.splice(genlength, heap.length);
 }
 
 function genAddress(){
+for (var i = 253; i >=0; --i) {
+      var hexbit = codestream[i];
+      var lookahead = codestream[i-1];
+      if(hexbit == "00" && lookahead == "00" ){
+        var goal = codestream[i+1];
+        var dec = i+2;
+        var hex = dec.toString(16);
+        var hexvalstring = hex.toUpperCase();
+        hexindex.push(hexvalstring);
+        break;
+      }
+      else if(hexbit == "00" && lookahead != "00"){
+        var goal = codestream[i+1];
+        var dec = i+2;
+        var hex = dec.toString(16);
+        var hexvalstring = hex.toUpperCase();
+        hexindex.push(hexvalstring);
 
-for (var i = 254; i > 0; --i) {
-//putOutput(codestream[i]);
-
+      }
+    }
 }
 
+function addStringHex() {
+var counter  = 0;
+for(var t = 0; t < hexindex.length; t++) {
+var location = codestream.indexOf(counter);
+codestream[location] = hexindex[t];
+counter++;
+}
 
 }
 
