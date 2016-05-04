@@ -176,7 +176,7 @@
          lexerrors++; 
          }
        }
-        //putOutput("Token Stream [" + tokenstream + "]"); //Ouputs token stream so that I can visualize things this might change depedning if you like it or not.
+        putOutput("Token Stream [" + tokenstream + "]"); //Ouputs token stream so that I can visualize things this might change depedning if you like it or not.
 
           
     }
@@ -1033,7 +1033,7 @@ var fail = 0;
          values = typearray[a];
          if(typearray.length == 1 && values.length == 0){
 
-          putOutput("Error: Must Declare Variables");
+          putOutput("Warning:Variables Have Not Been Declared");
          
 
          }
@@ -1454,20 +1454,168 @@ function getNextBit() {
         return thisBit;
   }
 
+Array.prototype.clean = function(deleteValue) {
+  for (var i = 0; i < this.length; i++) {
+    if (this[i] == deleteValue) {         
+      this.splice(i, 1);
+      i--;
+    }
+  }
+  return this;
+};
+
 
 var codestream = []; 
+var statictable = [];
+var hexstring = [];
+var heap = [];
 var codelength = 255;
 var codeindex = 0;
+var countscope = 0;
+var genlength = 0;
 
 function codeGen() {
+currentBit = getNextBit();
+getCode();
+genlength = codelength - codestream.length;
 addgen("Generating Code for Program " +programcounter+ "\n");
-for(var index = 0; index <= codelength; index++) {
+for(var index = 0; index < genlength; index++) {
     codestream.push("00");
 
 }
+createHeap();
+genHeap();
+genAddress();
 addgen(codestream.join(" ") +"\n");
+//putOutput(heap);
+putOutput(codestream.indexOf(0));
 
 }
+
+function getCode(){
+currentBit = getNextBit();
+if (currentBit.match(/print/)){
+currentBit = getNextBit();
+genPrint();
+getCode();
+}
+else if(currentBit.match(openbrace)){
+countscope++;
+getCode();
+}
+
+
+} 
+
+
+function genPrint(){
+currentBit = getNextBit();
+if(currentBit.match(digits)){
+codestream.push("A0");
+codestream.push("0"+currentBit);
+codestream.push("A2");
+codestream.push("01");
+codestream.push("FF");
+currentBit = getNextBit();
+}
+else if(currentBit.match(/true/)){
+codestream.push("A0");
+codestream.push("01");
+codestream.push("A2");
+codestream.push("01");
+codestream.push("FF");
+currentBit = getNextBit();
+}
+else if(currentBit.match(/false/)){
+codestream.push("A0");
+codestream.push("00");
+codestream.push("A2");
+codestream.push("01");
+codestream.push("FF");
+currentBit = getNextBit();
+}
+else if(currentBit.match(openq)){
+codestream.push("A0");
+codestream.push(track);
+track++;
+genString();
+array.clean("\"");
+array.push("00");
+hexstring.unshift(array);
+array = [];
+codestream.push("A2");
+codestream.push("02");
+codestream.push("FF");
+currentBit = getNextBit();
+}
+
+}
+
+var array = [];
+var track = 0;
+
+function genString(){
+currentBit = getNextBit();
+if(currentBit.match(chars)){
+hexletter = currentBit.charCodeAt(0).toString(16);
+array.push(hexletter);
+genString();
+}
+
+}
+
+function createHeap() {
+for (var k= 0; k < hexstring.length; k++) {
+    var hexval = hexstring[k];
+    for (var p= 0; p < hexval.length; p++) {
+                var hexnum = hexval[p];
+                heap.push(hexnum); 
+              }
+            } 
+        }
+
+
+function genHeap(){
+codestream.splice(genlength, heap.length);
+  for(var i = 0; i < heap.length; i++) {
+   codestream.push(heap[i]);
+  } 
+}
+
+function genAddress(){
+
+for (var i = 254; i > 0; --i) {
+//putOutput(codestream[i]);
+
+}
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
  
  
        
