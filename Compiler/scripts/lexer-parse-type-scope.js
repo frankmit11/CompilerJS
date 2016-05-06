@@ -1470,7 +1470,7 @@ var statictable = [];
 var hexstring = [];
 var hexindex = [];
 var heap = [];
-var codelength = 255;
+var codelength = 256;
 var codeindex = 0;
 var countscope = 0;
 var genlength = 0;
@@ -1489,6 +1489,7 @@ genHeap();
 genAddress();
 addStringHex();
 addgen(codestream.join(" ") +"\n");
+
 
 }
 
@@ -1576,7 +1577,8 @@ for (var k= 0; k < hexstring.length; k++) {
 
 
 function genHeap(){
-codestream.splice(genlength, heap.length);
+var num = codestream.length - heap.length;
+  codestream.splice(num,heap.length);
   for(var i = 0; i < heap.length; i++) {
    codestream.push(heap[i]);
   } 
@@ -1588,7 +1590,7 @@ for (var i = 253; i >=0; --i) {
       var lookahead = codestream[i-1];
       if(hexbit == "00" && lookahead == "00" ){
         var goal = codestream[i+1];
-        var dec = i+2;
+        var dec = i+1;
         var hex = dec.toString(16);
         var hexvalstring = hex.toUpperCase();
         hexindex.push(hexvalstring);
@@ -1596,7 +1598,7 @@ for (var i = 253; i >=0; --i) {
       }
       else if(hexbit == "00" && lookahead != "00"){
         var goal = codestream[i+1];
-        var dec = i+2;
+        var dec = i+1;
         var hex = dec.toString(16);
         var hexvalstring = hex.toUpperCase();
         hexindex.push(hexvalstring);
