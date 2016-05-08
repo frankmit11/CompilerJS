@@ -1194,8 +1194,7 @@ for (var t = 0; t < scopevals.length; t++) {
      }
    }
    if(gotmatch != 1){
-   fail =1;
-   putOutput("Warning: The value " +i+ " is not used and values must be declared");
+   putOutput("Warning: The value " +i+ " is not used and values should be declared");
    return;
 
    }
@@ -1219,8 +1218,7 @@ for (var t = 0; t < scopevals.length; t++) {
      }
    }
    if(gotmatch != 1){
-   fail =1;
-   putOutput("Warning: The value " +s+ " is not used and values must be declared");
+   putOutput("Warning: The value " +s+ " is not used and values should be declared");
    return;
 
    }
@@ -1243,8 +1241,7 @@ for (var t = 0; t < scopevals.length; t++) {
      }
    }
    if(gotmatch != 1){
-   fail = 1;
-   putOutput("Warning: The value " +b+ " is not used and values must be declared");
+   putOutput("Warning: The value " +b+ " is not used and values should be declared");
    return;
 
    }
@@ -1454,6 +1451,16 @@ function getNextBit() {
         return thisBit;
   }
 
+
+function getVarBit() { 
+        if (codeindex < tokenstream.length) 
+        {
+            thisVal = tokenstream[codeindex + 3];  
+
+        }
+        return thisVal;
+  }
+
 Array.prototype.clean = function(deleteValue) {
   for (var i = 0; i < this.length; i++) {
     if (this[i] == deleteValue) {         
@@ -1470,20 +1477,28 @@ var statictable = [];
 var hexstring = [];
 var hexindex = [];
 var heap = [];
+var offsets = [];
+var addressvar = [];
 var codelength = 256;
 var codeindex = 0;
 var countscope = 0;
 var genlength = 0;
+var indexvar = 0;
+var charbit = 0;
 
 function codeGen() {
 currentBit = getNextBit();
 getCode();
 genlength = codelength - codestream.length;
+genOffset();
+genVarAddress();
 addgen("Generating Code for Program " +programcounter+ "\n");
 for(var index = 1; index <= genlength; index++) {
     codestream.push("00");
 
 }
+//putOutput(codestream.indexOf("T"+countvar));
+putOutput(offsets);
 createHeap();
 genHeap();
 genAddress();
@@ -1499,6 +1514,46 @@ if (currentBit.match(/print/)){
 currentBit = getNextBit();
 genPrint();
 getCode();
+}
+else if(currentBit.match(/int/)){
+statictable.push("@");
+currentBit = getNextBit();
+genVar();
+getCode();
+}
+else if(currentBit.match(/string/)){
+statictable.push("#");
+currentBit = getNextBit();
+genVar();
+getCode();
+}
+else if(currentBit.match(/boolean/)){
+statictable.push("%");
+currentBit = getNextBit();
+genVar();
+getCode();
+}
+else if(currentBit.match(chars)){
+var test = getVarBit();
+if(test.match(chars)){
+charbit = currentBit;
+var index = statictable.indexOf(test);
+var newindex = index + 1;
+indexvar = statictable[newindex];
+addressvar.push(indexvar);
+currentBit = getNextBit();
+genAssign();
+getCode();
+}else{
+var index = statictable.indexOf(currentBit);
+var newindex = index + 1;
+indexvar = statictable[newindex];
+addressvar.push(indexvar);
+currentBit = getNextBit();
+genAssign();
+getCode();
+}
+
 }
 else if(currentBit.match(openbrace)){
 countscope++;
@@ -1549,6 +1604,29 @@ codestream.push("02");
 codestream.push("FF");
 currentBit = getNextBit();
 }
+else if(currentBit.match(chars)){
+var index = statictable.indexOf(currentBit);
+var newindex = index + 1;
+indexvar = statictable[newindex];
+addressvar.push(indexvar);
+codestream.push("AC");
+codestream.push("Z"+numcount);
+codestream.push("00");
+codestream.push("A2");
+putOutput(statictable);
+var stringtest = index - 1;
+var stval = statictable[stringtest];
+if(stval === "#"){
+codestream.push("02");
+codestream.push("FF");
+currentBit = getNextBit();
+}
+else{
+codestream.push("01");
+codestream.push("FF");
+currentBit = getNextBit();
+  }
+}
 
 }
 
@@ -1570,7 +1648,7 @@ for (var k= 0; k < hexstring.length; k++) {
     var hexval = hexstring[k];
     for (var p= 0; p < hexval.length; p++) {
                 var hexnum = hexval[p];
-                heap.push(hexnum); 
+                heap.push(hexnum.toUpperCase()); 
               }
             } 
         }
@@ -1613,12 +1691,100 @@ for(var t = 0; t < hexindex.length; t++) {
 var location = codestream.indexOf(counter);
 codestream[location] = hexindex[t];
 counter++;
+   }
+}
+
+var countvar = 0; 
+
+function genVar() {
+codestream.push("A9");
+codestream.push("00");
+codestream.push("8D");
+codestream.push("T"+countvar);
+statictable.push(currentBit);
+statictable.push(countvar);
+countvar++;
+codestream.push("00");
+}
+
+function genOffset(){
+var usepos = codestream.length + 1;
+for(var l = 0; l < statictable.length; l++) {
+    var offsetval = statictable[l];
+    var offsetdec = offsetval + usepos;
+if(offsetdec < 15){
+    var offsethex = offsetdec.toString(16).toUpperCase();
+         offsethex = ("0" + offsethex).slice(-2);
+         offsets.push(offsethex);
+       }
+ else if (offsetdec > 15){
+      offsethex = offsetdec.toString(16).toUpperCase();
+      offsets.push(offsethex);
+    }
+  }
+var num = 0;
+  
+  for(var j = 0; j < codestream.length; j++) {
+var location = codestream.indexOf("T"+num);
+codestream[location] = offsets[num];
+num++;
+   }
+
+}
+
+var numcount = 0;
+
+function genAssign(){
+currentBit = getNextBit();
+if(currentBit.match(digits)){
+codestream.push("A9");
+codestream.push("0"+currentBit);
+codestream.push("8D");
+codestream.push("Z"+numcount);
+numcount++;
+codestream.push("00");
+ }
+else if(currentBit.match(chars)){
+var index = statictable.indexOf(charbit);
+var newindex = index + 1;
+indexvar = statictable[newindex];
+addressvar.push(indexvar);
+codestream.push("AD");
+codestream.push("Z"+numcount);
+numcount++;
+codestream.push("00");
+codestream.push("8D");
+codestream.push("Z"+numcount);
+numcount++;
+codestream.push("00");
+}
+else if(currentBit.match(openq)){
+codestream.push("A9");
+codestream.push(track);
+track++;
+genString();
+array.clean("\"");
+array.push("00");
+hexstring.unshift(array);
+array = [];
+codestream.push("8D");
+codestream.push("Z"+numcount);
+numcount++;
+codestream.push("00");
 }
 
 }
 
+function genVarAddress(){
+putOutput(addressvar);
+for(var c = 0; c < addressvar.length; c++) {
+      var indexval = addressvar[c];
+      var location = codestream.indexOf("Z"+c);
+      codestream[location] = offsets[indexval];
 
+  }
 
+}
 
 
 
