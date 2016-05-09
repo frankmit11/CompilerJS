@@ -1567,16 +1567,44 @@ getCode();
 
 } 
 
+var addnum = 0;
 
 function genPrint(){
 currentBit = getNextBit();
 if(currentBit.match(digits)){
+addnum = currentBit;
+currentBit = getNextBit();
+if(currentBit == "+"){
+currentBit = getNextBit();
+genAdd();
+if(sum < 16){
+var hex = sum.toString(16).toUpperCase();
 codestream.push("A0");
-codestream.push("0"+currentBit);
+codestream.push("0"+hex);
 codestream.push("A2");
 codestream.push("01");
 codestream.push("FF");
-currentBit = getNextBit();
+countplus = 0;
+sum = 0;
+}
+else{
+var hex = sum.toString(16).toUpperCase();
+codestream.push("A0");
+codestream.push(hex);
+codestream.push("A2");
+codestream.push("01");
+codestream.push("FF");
+countplus = 0;
+sum = 0;
+}
+}
+else{
+codestream.push("A0");
+codestream.push("0"+addnum);
+codestream.push("A2");
+codestream.push("01");
+codestream.push("FF");
+}
 }
 else if(currentBit.match(/true/)){
 codestream.push("A0");
@@ -1738,16 +1766,49 @@ num++;
 }
 
 var numcount = 0;
+var numvar = 0;
 
 function genAssign(){
 currentBit = getNextBit();
 if(currentBit.match(digits)){
+numvar = currentBit;
+var addOp = tokenstream[codeindex];
+if(addOp == "+"){
+currentBit = getNextBit();
+currentBit = getNextBit();
+genVarAdd();
+codeindex = codeindex - 3;
+if(sum < 16){
+var hex = sum.toString(16).toUpperCase();
 codestream.push("A9");
-codestream.push("0"+currentBit);
+codestream.push("0"+hex);
 codestream.push("8D");
 codestream.push("Z"+numcount);
 numcount++;
 codestream.push("00");
+countplus = 0;
+sum = 0;
+}
+else{
+var hex = sum.toString(16).toUpperCase();
+codestream.push("A9");
+codestream.push(hex);
+codestream.push("8D");
+codestream.push("Z"+numcount);
+numcount++;
+codestream.push("00");
+countplus = 0;
+sum = 0;
+}
+}
+else{
+codestream.push("A9");
+codestream.push("0"+numvar);
+codestream.push("8D");
+codestream.push("Z"+numcount);
+numcount++;
+codestream.push("00");
+  }
  }
 else if(currentBit.match(chars)){
 var index = statictable.indexOf(charbit);
@@ -1809,10 +1870,40 @@ for(var c = 0; c < addressvar.length; c++) {
 }
 
 
+var countplus = 0;
+var sum = 0;
 
+function genAdd(){
+if(currentBit.match(digits)){
+var secondnum = currentBit;
+if(countplus == 0){
+sum = parseInt(addnum) + parseInt(secondnum);
+}
+else if(countplus > 0){
+sum = parseInt(sum) + parseInt(secondnum);
+}
+currentBit = getNextBit();
+countplus++;
+genAdd();
+}
 
+}
 
+function genVarAdd(){
+if(currentBit.match(digits)){
+var secondnum = currentBit;
+if(countplus == 0){
+sum = parseInt(numvar) + parseInt(secondnum);
+}
+else if(countplus > 0){
+sum = parseInt(sum) + parseInt(secondnum);
+}
+currentBit = getNextBit();
+countplus++;
+genVarAdd();
+}
 
+}
 
 
 
