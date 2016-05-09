@@ -1559,6 +1559,10 @@ else if(currentBit.match(openbrace)){
 countscope++;
 getCode();
 }
+else if(currentBit.match(closebrace)){
+//countscope++;
+getCode();
+}
 
 
 } 
@@ -1611,6 +1615,7 @@ indexvar = statictable[newindex];
 addressvar.push(indexvar);
 codestream.push("AC");
 codestream.push("Z"+numcount);
+numcount++;
 codestream.push("00");
 codestream.push("A2");
 putOutput(statictable);
@@ -1767,6 +1772,23 @@ array.clean("\"");
 array.push("00");
 hexstring.unshift(array);
 array = [];
+codestream.push("8D");
+codestream.push("Z"+numcount);
+numcount++;
+codestream.push("00");
+putOutput(currentBit);
+}
+else if(currentBit.match(/true/)){
+codestream.push("A9");
+codestream.push("01");
+codestream.push("8D");
+codestream.push("Z"+numcount);
+numcount++;
+codestream.push("00");
+}
+else if(currentBit.match(/false/)){
+codestream.push("A9");
+codestream.push("00");
 codestream.push("8D");
 codestream.push("Z"+numcount);
 numcount++;
