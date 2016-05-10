@@ -998,7 +998,7 @@ else if (val1.match(chars) && val2.match("\"")){
 else if (val1.match(chars) && val2.match(boolval)){
 //Do nothing
 }
-else if (val1.match(chars) && val2.match("(")){
+else if (val1.match(chars) && val2.match(chars)){
 //Do nothing
 }
 else{
@@ -1279,7 +1279,6 @@ type checked with a simple if statement.
                }
                else{
               putOutput("Type Error: " +i+ " is of type Integer");
-              fail = 1;
               return;
 
                }
@@ -1473,6 +1472,7 @@ Array.prototype.clean = function(deleteValue) {
 
 
 var codestream = []; 
+var jumpindex = [];
 var statictable = [];
 var hexstring = [];
 var hexindex = [];
@@ -1499,14 +1499,18 @@ for(var index = 1; index <= genlength; index++) {
 }
 //putOutput(codestream.indexOf("T"+countvar));
 putOutput(offsets);
+putOutput(jumpindex);
 createHeap();
 genHeap();
 genAddress();
 addStringHex();
+genJump();
 addgen(codestream.join(" ") +"\n");
 
 
 }
+
+var testflag = 0;
 
 function getCode(){
 currentBit = getNextBit();
@@ -1532,6 +1536,21 @@ statictable.push("%");
 currentBit = getNextBit();
 genVar();
 getCode();
+}
+else if(currentBit.match(/if/)){
+testflag = 1;
+currentBit = getNextBit();
+genIf();
+getCode();
+  }
+else if(currentBit.match(closebrace) && testflag == 1){
+testflag = 0;
+codestream.push("$$")
+var marker = codestream.indexOf("$$");
+codestream.splice(marker, 1);
+jumpindex.push(marker);
+getCode();
+
 }
 else if(currentBit.match(chars)){
 var test = getVarBit();
@@ -1905,8 +1924,94 @@ genVarAdd();
 
 }
 
+function genIf(){
+currentBit = getNextBit();
+if(currentBit.match(chars)){
+var test = getVarBit();
+if(test.match(chars)){
+charbit = currentBit;
+var index = statictable.indexOf(test);
+var newindex = index + 1;
+indexvar = statictable[newindex];
+addressvar.push(indexvar);
+currentBit = getNextBit();
+genCond();
+}else{
+var index = statictable.indexOf(currentBit);
+var newindex = index + 1;
+indexvar = statictable[newindex];
+addressvar.push(indexvar);
+currentBit = getNextBit();
+genCond();
+  }
+}
 
+}
+var jcount = 0;
 
+function genCond(){
+currentBit = getNextBit();
+if(currentBit.match(chars)){
+var index = statictable.indexOf(charbit);
+var newindex = index + 1;
+indexvar = statictable[newindex];
+addressvar.push(indexvar);
+codestream.push("AE");
+codestream.push("Z"+numcount);
+numcount++;
+codestream.push("00");
+codestream.push("EC");
+codestream.push("Z"+numcount);
+numcount++;
+codestream.push("00");
+codestream.push("D0");
+codestream.push("J"+jcount);
+jcount++;
+currentBit = getNextBit();
+}
+else if(currentBit.match(digits)){
+var index = statictable.indexOf(charbit);
+var newindex = index + 1;
+indexvar = statictable[newindex];
+codestream.push("A2");
+codestream.push("0"+currentBit);
+codestream.push("EC");
+codestream.push("Z"+numcount);
+numcount++;
+codestream.push("00");
+codestream.push("D0");
+codestream.push("J"+jcount);
+jcount++;
+currentBit = getNextBit();
+}
+
+}
+
+var up = 0;
+var jumpnum = 0;
+
+function genJump(){
+for(var f = 0; f < codestream.length; f++) {
+     var jumpval = codestream[f];
+      if(jumpval == "J"+up){
+        var start = codestream.indexOf(jumpval);
+        var distance = jumpindex[up];
+        up++;
+        var jump = distance - start;
+        putOutput(jump);
+        if(jump < 16){
+          var hex = jump.toString(16).toUpperCase();
+
+        codestream[start] = "0"+hex;
+               }
+      else{
+      var hex = jump.toString(16).toUpperCase();
+      codestream[start] = hex;
+        }
+      
+      }
+    }
+  }
 
 
 
