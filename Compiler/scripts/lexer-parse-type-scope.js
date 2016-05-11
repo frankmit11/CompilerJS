@@ -176,7 +176,7 @@
          lexerrors++; 
          }
        }
-        putOutput("Token Stream [" + tokenstream + "]"); //Ouputs token stream so that I can visualize things this might change depedning if you like it or not.
+       // putOutput("Token Stream [" + tokenstream + "]"); //Ouput token stream so that I can visualize things this might change depedning if you like it or not.
 
           
     }
@@ -1473,6 +1473,9 @@ Array.prototype.clean = function(deleteValue) {
 
 var codestream = []; 
 var jumpindex = [];
+var jumpdiff = [];
+var endindex = [];
+var whileindex = [];
 var statictable = [];
 var hexstring = [];
 var hexindex = [];
@@ -1497,20 +1500,19 @@ for(var index = 1; index <= genlength; index++) {
     codestream.push("00");
 
 }
-//putOutput(codestream.indexOf("T"+countvar));
-putOutput(offsets);
-putOutput(jumpindex);
 createHeap();
 genHeap();
 genAddress();
 addStringHex();
 genJump();
+genWhileJump();
 addgen(codestream.join(" ") +"\n");
 
 
 }
 
 var testflag = 0;
+var whilecount = 0;
 
 function getCode(){
 currentBit = getNextBit();
@@ -1540,17 +1542,35 @@ getCode();
 else if(currentBit.match(/if/)){
 testflag = 1;
 currentBit = getNextBit();
-genIf();
+genBool();
+getCode();
+  }
+else if(currentBit.match(/while/)){
+testflag = 2;
+currentBit = getNextBit();
+genBool();
 getCode();
   }
 else if(currentBit.match(closebrace) && testflag == 1){
 testflag = 0;
-codestream.push("$$")
+codestream.push("$$");
 var marker = codestream.indexOf("$$");
 codestream.splice(marker, 1);
 jumpindex.push(marker);
 getCode();
 
+}
+else if(currentBit.match(closebrace) && testflag == 2){
+testflag = 0;
+codestream.push("YY");
+var marker = codestream.indexOf("YY");
+codestream.splice(marker, 1);
+codestream.push("D0");
+codestream.push("X"+whilecount);
+jumpindex.push(marker);
+endindex.push(marker);
+whilecount++;
+getCode();
 }
 else if(currentBit.match(chars)){
 var test = getVarBit();
@@ -1665,7 +1685,6 @@ codestream.push("Z"+numcount);
 numcount++;
 codestream.push("00");
 codestream.push("A2");
-putOutput(statictable);
 var stringtest = index - 1;
 var stval = statictable[stringtest];
 if(stval === "#"){
@@ -1856,7 +1875,6 @@ codestream.push("8D");
 codestream.push("Z"+numcount);
 numcount++;
 codestream.push("00");
-putOutput(currentBit);
 }
 else if(currentBit.match(/true/)){
 codestream.push("A9");
@@ -1878,7 +1896,6 @@ codestream.push("00");
 }
 
 function genVarAddress(){
-putOutput(addressvar);
 for(var c = 0; c < addressvar.length; c++) {
       var indexval = addressvar[c];
       var location = codestream.indexOf("Z"+c);
@@ -1924,7 +1941,7 @@ genVarAdd();
 
 }
 
-function genIf(){
+function genBool(){
 currentBit = getNextBit();
 if(currentBit.match(chars)){
 var test = getVarBit();
@@ -1948,6 +1965,7 @@ genCond();
 
 }
 var jcount = 0;
+var loopback = 0;
 
 function genCond(){
 currentBit = getNextBit();
@@ -1956,6 +1974,12 @@ var index = statictable.indexOf(charbit);
 var newindex = index + 1;
 indexvar = statictable[newindex];
 addressvar.push(indexvar);
+if(testflag == 2){
+codestream.push("##");
+var startwhile = codestream.indexOf("##");
+codestream.splice(startwhile, 1);
+whileindex.push(startwhile - 1);
+}
 codestream.push("AE");
 codestream.push("Z"+numcount);
 numcount++;
@@ -1973,6 +1997,12 @@ else if(currentBit.match(digits)){
 var index = statictable.indexOf(charbit);
 var newindex = index + 1;
 indexvar = statictable[newindex];
+if(testflag == 2){
+codestream.push("##");
+var startwhile = codestream.indexOf("##");
+codestream.splice(startwhile, 1);
+whileindex.push(startwhile - 1);
+}
 codestream.push("A2");
 codestream.push("0"+currentBit);
 codestream.push("EC");
@@ -1998,7 +2028,6 @@ for(var f = 0; f < codestream.length; f++) {
         var distance = jumpindex[up];
         up++;
         var jump = distance - start;
-        putOutput(jump);
         if(jump < 16){
           var hex = jump.toString(16).toUpperCase();
 
@@ -2013,8 +2042,29 @@ for(var f = 0; f < codestream.length; f++) {
     }
   }
 
+var whilejumpdistance = [];
 
+function genWhileJump(){
+for(var d = 0; d < endindex.length; d++) {
+var num = endindex[d];
+var diff = 256 - num;
+jumpdiff.push(diff);
 
+}
+for(var m = 0; m < whileindex.length; m++) {
+var numval = whileindex[m];
+var secondnum = jumpdiff[m];
+var sum = numval + secondnum;
+var hex = sum.toString(16).toUpperCase();
+whilejumpdistance.push(hex);
+}
+for(var j = 0; j < whilejumpdistance.length; j++) {
+var location = codestream.indexOf("X"+j);
+codestream[location] = whilejumpdistance[j];
+
+}
+
+}
 
 
 
