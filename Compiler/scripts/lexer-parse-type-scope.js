@@ -1953,7 +1953,9 @@ indexvar = statictable[newindex];
 addressvar.push(indexvar);
 currentBit = getNextBit();
 genCond();
-}else{
+}
+
+else{
 var index = statictable.indexOf(currentBit);
 var newindex = index + 1;
 indexvar = statictable[newindex];
@@ -1961,6 +1963,13 @@ addressvar.push(indexvar);
 currentBit = getNextBit();
 genCond();
   }
+}
+else if(currentBit.match(digits)){
+codestream.push("AE");
+codestream.push("0"+currentBit);
+codestream.push("00");
+currentBit = getNextBit();
+genDigitCond();
 }
 
 }
@@ -2005,6 +2014,48 @@ whileindex.push(startwhile - 1);
 }
 codestream.push("A2");
 codestream.push("0"+currentBit);
+codestream.push("EC");
+codestream.push("Z"+numcount);
+numcount++;
+codestream.push("00");
+codestream.push("D0");
+codestream.push("J"+jcount);
+jcount++;
+currentBit = getNextBit();
+}
+else if(currentBit.match(/true/)){
+var index = statictable.indexOf(charbit);
+var newindex = index + 1;
+indexvar = statictable[newindex];
+if(testflag == 2){
+codestream.push("##");
+var startwhile = codestream.indexOf("##");
+codestream.splice(startwhile, 1);
+whileindex.push(startwhile - 1);
+}
+codestream.push("A2");
+codestream.push("01");
+codestream.push("EC");
+codestream.push("Z"+numcount);
+numcount++;
+codestream.push("00");
+codestream.push("D0");
+codestream.push("J"+jcount);
+jcount++;
+currentBit = getNextBit();
+}
+else if(currentBit.match(/false/)){
+var index = statictable.indexOf(charbit);
+var newindex = index + 1;
+indexvar = statictable[newindex];
+if(testflag == 2){
+codestream.push("##");
+var startwhile = codestream.indexOf("##");
+codestream.splice(startwhile, 1);
+whileindex.push(startwhile - 1);
+}
+codestream.push("A2");
+codestream.push("00");
 codestream.push("EC");
 codestream.push("Z"+numcount);
 numcount++;
@@ -2066,6 +2117,19 @@ codestream[location] = whilejumpdistance[j];
 
 }
 
+function genDigitCond(){
+currentBit = getNextBit();
+if(currentBit.match(digits)){
+codestream.push("EC");
+codestream.push("0"+currentBit);
+codestream.push("00");
+codestream.push("D0");
+codestream.push("J"+jcount);
+jcount++;
+currentBit = getNextBit();
+}
+
+}
 
 
 
